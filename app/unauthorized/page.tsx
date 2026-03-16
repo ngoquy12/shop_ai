@@ -1,11 +1,8 @@
-import type { Metadata } from "next"
+"use client"
+
 import Link from "next/link"
 import { ShieldOff, ArrowLeft, Home, LogIn } from "lucide-react"
 import { Button } from "@/components/ui/button"
-
-export const metadata: Metadata = {
-  title: "Không có quyền truy cập | VideoPrompt",
-}
 
 export default function UnauthorizedPage() {
   return (
@@ -53,7 +50,7 @@ export default function UnauthorizedPage() {
 
         {/* Back link */}
         <button
-          onClick={() => history.back()}
+          onClick={() => window.history.back()}
           className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors mx-auto"
         >
           <ArrowLeft className="w-4 h-4" />
