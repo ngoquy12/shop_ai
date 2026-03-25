@@ -5,8 +5,19 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
 export const metadata: Metadata = {
-  title: "Dịch vụ",
-  description: "Các dịch vụ công nghệ AI toàn diện từ VideoPrompt.",
+  title: "Dịch Vụ AI & Web Toàn Diện",
+  description:
+    "VideoPrompt cung cấp đầy đủ dịch vụ AI & Web: Tài khoản AI chính chủ, Thiết kế & phát triển website chuyên nghiệp, Khóa học AI thực chiến từ chuyên gia.",
+  keywords: [
+    "dịch vụ AI", "cung cấp tài khoản AI", "thiết kế website", "khóa học AI",
+    "VideoPrompt", "dịch vụ công nghệ AI Việt Nam",
+  ],
+  openGraph: {
+    title: "Dịch Vụ AI & Web Toàn Diện | VideoPrompt",
+    description: "Tài khoản AI, website chuyên nghiệp, khóa học thực chiến — tất cả trong một nền tảng.",
+    type: "website",
+    locale: "vi_VN",
+  },
 };
 
 const services = [
