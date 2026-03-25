@@ -1,13 +1,12 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { Plus, Search, Edit2, Trash2, Star, Users, ToggleLeft, ToggleRight, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet"
 import { cn } from "@/lib/utils"
 import { ADMIN_COURSES, type AdminCourse } from "@/lib/admin-data"
 
@@ -20,17 +19,24 @@ const BADGE_CLS = {
 
 const LEVELS: AdminCourse["level"][] = ["Cơ bản", "Trung cấp", "Nâng cao"]
 
-function CourseSheet({ open, onClose, course, onSave }: {
+const EMPTY_COURSE: Omit<AdminCourse, "id" | "createdAt"> = {
+  title: "", subtitle: "", instructor: { name: "", avatar: "" },
+  level: "Cơ bản", price: 0, originalPrice: 0, lessons: 0, duration: "",
+  students: 0, rating: 4.5, badge: null, status: "active", thumbnail: "📚", slug: "", tags: [],
+}
+
+// ─── Course Form Modal ─────────────────────────────────────────────────────
+function CourseModal({ open, onClose, course, onSave }: {
   open: boolean; onClose: () => void
   course: AdminCourse | null; onSave: (c: AdminCourse) => void
 }) {
-  const empty: Omit<AdminCourse, "id" | "createdAt"> = {
-    title: "", subtitle: "", instructor: { name: "", avatar: "" },
-    level: "Cơ bản", price: 0, originalPrice: 0, lessons: 0, duration: "",
-    students: 0, rating: 4.5, badge: null, status: "active", thumbnail: "📚", slug: "", tags: [],
-  }
-  const [form, setForm] = useState(course ? { ...course } : { ...empty })
+  const [form, setForm] = useState(course ? { ...course } : { ...EMPTY_COURSE })
   const [tagInput, setTagInput] = useState("")
+
+  useEffect(() => {
+    if (open) setTimeout(() => setForm(course ? { ...course } : { ...EMPTY_COURSE }), 0)
+  }, [open, course])
+
   const set = <K extends keyof typeof form>(k: K, v: typeof form[K]) => setForm(f => ({ ...f, [k]: v }))
   const addTag = () => { const t = tagInput.trim(); if (t && !form.tags.includes(t)) set("tags", [...form.tags, t]); setTagInput("") }
 
@@ -42,123 +48,150 @@ function CourseSheet({ open, onClose, course, onSave }: {
   const EMOJIS = ["📚","🚀","💻","🎨","🎬","📱","⚡","📊","✍️","🎯","🔬","💡"]
 
   return (
-    <Sheet open={open} onOpenChange={o => !o && onClose()}>
-      <SheetContent side="right" className="w-full sm:max-w-lg bg-[#111118] border-[rgba(255,255,255,0.08)] text-white overflow-y-auto">
-        <SheetHeader className="mb-5">
-          <SheetTitle className="text-white text-xl font-bold">{course ? "Chỉnh sửa khóa học" : "Thêm khóa học mới"}</SheetTitle>
-        </SheetHeader>
-        <div className="space-y-4 pb-8">
-          {/* Thumbnail emoji */}
-          <div className="space-y-2">
-            <Label className="text-[#8b8b9e] text-xs">Thumbnail</Label>
-            <div className="flex flex-wrap gap-2">
-              {EMOJIS.map(e => (
-                <button key={e} type="button" onClick={() => set("thumbnail", e)}
-                  className={cn("w-10 h-10 text-2xl rounded-xl border-2 flex items-center justify-center transition-all",
-                    form.thumbnail === e ? "border-blue-500 bg-blue-500/15" : "border-[rgba(255,255,255,0.08)] hover:border-white/20")}>
-                  {e}
-                </button>
-              ))}
+    <AnimatePresence>
+      {open && (
+        <div className="fixed inset-0 z-9999 flex items-center justify-center p-4 sm:p-6" onClick={(e) => { if (e.target === e.currentTarget) onClose() }}>
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 bg-black/60 backdrop-blur-[2px]" />
+          
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: 10 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 10 }}
+            transition={{ type: "spring", stiffness: 350, damping: 30 }}
+            className="relative z-10 w-full max-w-4xl max-h-[90vh] flex flex-col rounded-2xl border border-[rgba(255,255,255,0.08)] bg-[#111118] text-white shadow-2xl overflow-hidden"
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between px-6 py-4 border-b border-[rgba(255,255,255,0.08)] bg-[#0d0d14]">
+              <h2 className="text-xl font-bold">{course ? "Chỉnh sửa khóa học" : "Thêm khóa học mới"}</h2>
+              <button type="button" onClick={onClose} className="p-2 rounded-lg hover:bg-white/10 text-[#8b8b9e] hover:text-white transition-colors">
+                <X className="w-5 h-5" />
+              </button>
             </div>
-          </div>
 
-          <div className="space-y-1.5">
-            <Label className="text-[#8b8b9e] text-xs">Tiêu đề *</Label>
-            <Input value={form.title} onChange={e => set("title", e.target.value)} placeholder="VD: AI Marketing Masterclass" className="admin-input" />
-          </div>
-          <div className="space-y-1.5">
-            <Label className="text-[#8b8b9e] text-xs">Mô tả ngắn</Label>
-            <Textarea value={form.subtitle} onChange={e => set("subtitle", e.target.value)} rows={2} className="admin-input resize-none" placeholder="Mô tả nội dung khóa học..." />
-          </div>
+            {/* Body */}
+            <div className="flex-1 overflow-y-auto p-6 scrollbar-none">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                {/* Left Column */}
+                <div className="space-y-5">
+                  <div className="space-y-1.5 flex flex-col items-center p-4 bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.07)] rounded-xl">
+                    <Label className="text-[#8b8b9e] text-xs self-start w-full">Thumbnail Khóa học</Label>
+                    <div className="flex flex-wrap gap-2 mt-2 w-full justify-center">
+                      {EMOJIS.map(e => (
+                        <button key={e} type="button" onClick={() => set("thumbnail", e)}
+                          className={cn("w-10 h-10 text-2xl rounded-xl border-2 flex items-center justify-center transition-all",
+                            form.thumbnail === e ? "border-blue-500 bg-blue-500/15" : "border-[rgba(255,255,255,0.08)] hover:border-white/20")}>
+                          {e}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <Label className="text-[#8b8b9e] text-xs">Giảng viên</Label>
-              <Input value={form.instructor.name} onChange={e => set("instructor", { ...form.instructor, name: e.target.value })} placeholder="Họ tên" className="admin-input" />
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-[#8b8b9e] text-xs">Cấp độ</Label>
-              <select value={form.level} onChange={e => set("level", e.target.value as AdminCourse["level"])}
-                className="w-full px-3 py-2.5 rounded-xl border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.05)] text-white text-sm focus:outline-none">
-                {LEVELS.map(l => <option key={l} value={l} className="bg-[#111118]">{l}</option>)}
-              </select>
-            </div>
-          </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-[#8b8b9e] text-xs">Tiêu đề khóa học *</Label>
+                    <Input value={form.title} onChange={e => set("title", e.target.value)} placeholder="VD: AI Marketing Masterclass" className="admin-input h-10" />
+                  </div>
+                  
+                  <div className="space-y-1.5">
+                    <Label className="text-[#8b8b9e] text-xs">Mô tả ngắn (Subtitle)</Label>
+                    <Textarea value={form.subtitle} onChange={e => set("subtitle", e.target.value)} rows={3} className="admin-input resize-none" placeholder="Mô tả nội dung khóa học..." />
+                  </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <Label className="text-[#8b8b9e] text-xs">Giá bán (đ)</Label>
-              <Input type="number" value={form.price || ""} onChange={e => set("price", Number(e.target.value))} className="admin-input" placeholder="0" />
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-[#8b8b9e] text-xs">Giá gốc (đ)</Label>
-              <Input type="number" value={form.originalPrice || ""} onChange={e => set("originalPrice", Number(e.target.value))} className="admin-input" placeholder="0" />
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-[#8b8b9e] text-xs">Số bài học</Label>
-              <Input type="number" value={form.lessons || ""} onChange={e => set("lessons", Number(e.target.value))} className="admin-input" placeholder="0" />
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-[#8b8b9e] text-xs">Thời lượng</Label>
-              <Input value={form.duration} onChange={e => set("duration", e.target.value)} className="admin-input" placeholder="VD: 8h 30m" />
-            </div>
-          </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-[#8b8b9e] text-xs">Slug URL</Label>
+                    <Input value={form.slug} onChange={e => set("slug", e.target.value)} className="admin-input h-10" placeholder="vd: ai-marketing-masterclass" />
+                  </div>
 
-          <div className="space-y-1.5">
-            <Label className="text-[#8b8b9e] text-xs">Slug URL</Label>
-            <Input value={form.slug} onChange={e => set("slug", e.target.value)} className="admin-input" placeholder="vd: ai-marketing-masterclass" />
-          </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-[#8b8b9e] text-xs">Badge nổi bật</Label>
+                    <div className="flex gap-2">
+                      {([null, "New", "Bestseller"] as const).map(b => (
+                        <button key={String(b)} type="button" onClick={() => set("badge", b)}
+                          className={cn("px-4 py-2 rounded-xl text-xs font-semibold border transition-all flex-1",
+                            form.badge === b ? "border-blue-500/50 bg-blue-500/15 text-blue-400" : "border-[rgba(255,255,255,0.08)] text-[#8b8b9e]")}>
+                          {b === null ? "Không có" : b}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
 
-          {/* Badge */}
-          <div className="space-y-1.5">
-            <Label className="text-[#8b8b9e] text-xs">Badge</Label>
-            <div className="flex gap-2">
-              {([null, "New", "Bestseller"] as const).map(b => (
-                <button key={String(b)} type="button" onClick={() => set("badge", b)}
-                  className={cn("px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all",
-                    form.badge === b ? "border-blue-500/50 bg-blue-500/15 text-blue-400" : "border-[rgba(255,255,255,0.08)] text-[#8b8b9e]")}>
-                  {b === null ? "Không có" : b}
-                </button>
-              ))}
-            </div>
-          </div>
+                {/* Right Column */}
+                <div className="space-y-5">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <Label className="text-[#8b8b9e] text-xs">Giảng viên</Label>
+                      <Input value={form.instructor.name} onChange={e => set("instructor", { ...form.instructor, name: e.target.value })} placeholder="Họ tên GV" className="admin-input h-10" />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-[#8b8b9e] text-xs">Cấp độ</Label>
+                      <select value={form.level} onChange={e => set("level", e.target.value as AdminCourse["level"])}
+                        className="w-full h-10 px-3 rounded-xl border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.05)] text-white text-sm focus:outline-none">
+                        {LEVELS.map(l => <option key={l} value={l} className="bg-[#111118]">{l}</option>)}
+                      </select>
+                    </div>
+                  </div>
 
-          {/* Tags */}
-          <div className="space-y-2">
-            <Label className="text-[#8b8b9e] text-xs">Tags</Label>
-            <div className="flex gap-2">
-              <Input value={tagInput} onChange={e => setTagInput(e.target.value)} onKeyDown={e => e.key === "Enter" && (e.preventDefault(), addTag())} placeholder="Nhập tag..." className="admin-input h-9 text-sm" />
-              <Button type="button" size="sm" onClick={addTag} className="bg-blue-600 hover:bg-blue-700 text-white h-9 px-3">+</Button>
-            </div>
-            <div className="flex flex-wrap gap-1.5">
-              {form.tags.map(t => (
-                <span key={t} className="flex items-center gap-1 text-xs px-2.5 py-1 rounded-full bg-blue-500/15 border border-blue-500/20 text-blue-400">
-                  {t}<button onClick={() => set("tags", form.tags.filter(x => x !== t))}><X className="w-3 h-3" /></button>
-                </span>
-              ))}
-            </div>
-          </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <Label className="text-[#8b8b9e] text-xs">Giá gốc (đ)</Label>
+                      <Input type="number" value={form.originalPrice || ""} onChange={e => set("originalPrice", Number(e.target.value))} className="admin-input h-10" placeholder="0" />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-[#8b8b9e] text-xs">Giá bán mới (đ)</Label>
+                      <Input type="number" value={form.price || ""} onChange={e => set("price", Number(e.target.value))} className="admin-input h-10" placeholder="0" />
+                    </div>
+                  </div>
 
-          {/* Status */}
-          <div className="flex items-center justify-between p-3 rounded-xl border border-[rgba(255,255,255,0.07)] bg-[rgba(255,255,255,0.03)]">
-            <div>
-              <p className="text-sm font-medium text-white">Đang hoạt động</p>
-              <p className="text-xs text-[#8b8b9e] mt-0.5">Hiển thị khóa học cho học viên</p>
-            </div>
-            <button type="button" onClick={() => set("status", form.status === "active" ? "inactive" : "active")}>
-              {form.status === "active" ? <ToggleRight className="w-8 h-8 text-blue-500" /> : <ToggleLeft className="w-8 h-8 text-[#8b8b9e]" />}
-            </button>
-          </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <Label className="text-[#8b8b9e] text-xs">Số bài học</Label>
+                      <Input type="number" value={form.lessons || ""} onChange={e => set("lessons", Number(e.target.value))} className="admin-input h-10" placeholder="0" />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-[#8b8b9e] text-xs">Thời lượng tổng</Label>
+                      <Input value={form.duration} onChange={e => set("duration", e.target.value)} className="admin-input h-10" placeholder="VD: 8h 30m" />
+                    </div>
+                  </div>
 
-          <div className="flex gap-3 pt-2">
-            <Button onClick={handleSave} className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold">
-              {course ? "Lưu thay đổi" : "Thêm khóa học"}
-            </Button>
-            <Button variant="outline" onClick={onClose} className="border-[rgba(255,255,255,0.12)] text-[#8b8b9e] hover:text-white bg-transparent">Hủy</Button>
-          </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-[#8b8b9e] text-xs">Tags</Label>
+                    <div className="flex gap-2">
+                      <Input value={tagInput} onChange={e => setTagInput(e.target.value)} onKeyDown={e => e.key === "Enter" && (e.preventDefault(), addTag())} placeholder="Nhập tag..." className="admin-input h-10 text-sm" />
+                      <Button type="button" onClick={addTag} className="bg-blue-600 hover:bg-blue-700 text-white h-10 px-4">+</Button>
+                    </div>
+                    <div className="flex flex-wrap gap-1.5 mt-2">
+                      {form.tags.map(t => (
+                        <span key={t} className="flex items-center gap-1 text-xs px-2.5 py-1 rounded-full bg-blue-500/15 border border-blue-500/20 text-blue-400">
+                          {t}<button onClick={() => set("tags", form.tags.filter(x => x !== t))}><X className="w-3 h-3" /></button>
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between p-3.5 rounded-xl border border-[rgba(255,255,255,0.07)] bg-[rgba(255,255,255,0.03)] mt-2">
+                    <div>
+                      <p className="text-sm font-medium text-white">Trạng thái hoạt động</p>
+                      <p className="text-xs text-[#8b8b9e] mt-0.5">Hiển thị công khai khóa học</p>
+                    </div>
+                    <button type="button" onClick={() => set("status", form.status === "active" ? "inactive" : "active")}>
+                      {form.status === "active" ? <ToggleRight className="w-9 h-9 text-blue-500" /> : <ToggleLeft className="w-9 h-9 text-[#8b8b9e]" />}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-[rgba(255,255,255,0.08)] bg-[#0d0d14]">
+              <Button type="button" variant="outline" onClick={onClose} className="border-[rgba(255,255,255,0.12)] text-[#8b8b9e] hover:text-white bg-transparent h-10 px-6">Hủy bỏ</Button>
+              <Button type="button" onClick={handleSave} className="bg-blue-600 hover:bg-blue-700 text-white font-semibold h-10 px-8">
+                {course ? "Lưu thay đổi" : "Thêm khóa học"}
+              </Button>
+            </div>
+          </motion.div>
         </div>
-      </SheetContent>
-    </Sheet>
+      )}
+    </AnimatePresence>
   )
 }
 
@@ -292,7 +325,7 @@ export default function CoursesAdminPage() {
         </div>
       )}
 
-      <CourseSheet open={sheetOpen} onClose={() => setSheetOpen(false)} course={editing} onSave={handleSave} />
+      <CourseModal open={sheetOpen} onClose={() => setSheetOpen(false)} course={editing} onSave={handleSave} />
     </div>
   )
 }

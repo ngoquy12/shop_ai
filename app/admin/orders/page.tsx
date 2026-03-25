@@ -2,10 +2,9 @@
 
 import { useState, useMemo } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { Search, Clock, CheckCircle2, XCircle, Loader2, Package, FileText } from "lucide-react"
+import { Search, Clock, CheckCircle2, XCircle, Loader2, Package, FileText, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet"
 import { cn } from "@/lib/utils"
 import { ADMIN_ORDERS, type AdminOrder } from "@/lib/admin-data"
 
@@ -36,7 +35,8 @@ const TIMELINE: Record<string, { label: string; color: string }[]> = {
   cancelled:  [{ label: "Đã đặt hàng", color: "bg-green-500" }, { label: "Đã hủy", color: "bg-red-500" }],
 }
 
-function OrderSheet({ order, onClose, onStatusChange }: {
+// ─── Order Detail Modal ───────────────────────────────────────────────────
+function OrderModal({ order, onClose, onStatusChange }: {
   order: AdminOrder; onClose: () => void
   onStatusChange: (id: string, s: AdminOrder["status"]) => void
 }) {
@@ -44,16 +44,27 @@ function OrderSheet({ order, onClose, onStatusChange }: {
   const timeline = TIMELINE[order.status]
 
   return (
-    <Sheet open onOpenChange={(o) => !o && onClose()}>
-      <SheetContent side="right" className="w-full sm:max-w-md bg-[#111118] border-[rgba(255,255,255,0.08)] text-white overflow-y-auto">
-        <SheetHeader className="mb-5">
-          <SheetTitle className="text-white text-lg font-bold flex items-center gap-2">
+    <div className="fixed inset-0 z-9999 flex items-center justify-center p-4 sm:p-6" onClick={(e) => { if (e.target === e.currentTarget) onClose() }}>
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 bg-black/60 backdrop-blur-[2px]" />
+      
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95, y: 10 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95, y: 10 }}
+        transition={{ type: "spring", stiffness: 350, damping: 30 }}
+        className="relative z-10 w-full max-w-lg max-h-[90vh] flex flex-col rounded-2xl border border-[rgba(255,255,255,0.08)] bg-[#111118] text-white shadow-2xl overflow-hidden"
+      >
+        <div className="flex items-center justify-between px-6 py-4 border-b border-[rgba(255,255,255,0.08)] bg-[#0d0d14]">
+          <h2 className="text-lg font-bold flex items-center gap-2">
             <FileText className="w-5 h-5 text-blue-400" />
-            Đơn hàng {order.id}
-          </SheetTitle>
-        </SheetHeader>
+            Đơn hàng #{order.id}
+          </h2>
+          <button type="button" onClick={onClose} className="p-2 rounded-lg hover:bg-white/10 text-[#8b8b9e] hover:text-white transition-colors">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
 
-        <div className="space-y-5 pb-8">
+        <div className="flex-1 overflow-y-auto p-6 space-y-6 scrollbar-none">
           {/* Status badge + time */}
           <div className="flex items-center justify-between">
             <span className={cn("text-xs font-bold px-3 py-1.5 rounded-full border flex items-center gap-1.5", st.cls)}>
@@ -108,7 +119,7 @@ function OrderSheet({ order, onClose, onStatusChange }: {
                 <p className="text-sm font-bold text-white">{fmt(item.price)}</p>
               </div>
             ))}
-            <div className="flex items-center justify-between px-4 py-3 bg-[rgba(255,255,255,0.03)]">
+            <div className="flex items-center justify-between px-4 py-3 bg-[rgba(255,255,255,0.02)]">
               <p className="text-sm font-bold text-white">Tổng cộng</p>
               <p className="text-base font-extrabold text-green-400">{fmt(order.total)}</p>
             </div>
@@ -120,27 +131,24 @@ function OrderSheet({ order, onClose, onStatusChange }: {
               <p className="text-xs font-bold text-[#8b8b9e] uppercase tracking-wider">Đổi trạng thái</p>
               <div className="grid grid-cols-2 gap-2">
                 {order.status === "pending" && (
-                  <Button onClick={() => { onStatusChange(order.id, "processing"); onClose() }}
-                    className="bg-blue-600 hover:bg-blue-700 text-white text-sm">
+                  <Button onClick={() => { onStatusChange(order.id, "processing"); onClose() }} className="bg-blue-600 hover:bg-blue-700 text-white text-sm">
                     → Đang xử lý
                   </Button>
                 )}
                 {(order.status === "pending" || order.status === "processing") && (
-                  <Button onClick={() => { onStatusChange(order.id, "completed"); onClose() }}
-                    className="bg-green-600 hover:bg-green-700 text-white text-sm">
+                  <Button onClick={() => { onStatusChange(order.id, "completed"); onClose() }} className="bg-green-600 hover:bg-green-700 text-white text-sm">
                     ✓ Hoàn thành
                   </Button>
                 )}
-                <Button onClick={() => { onStatusChange(order.id, "cancelled"); onClose() }}
-                  variant="outline" className="border-red-500/30 text-red-400 hover:bg-red-500/10 bg-transparent text-sm col-span-1">
+                <Button onClick={() => { onStatusChange(order.id, "cancelled"); onClose() }} variant="outline" className="border-red-500/30 text-red-400 hover:bg-red-500/10 bg-transparent text-sm col-span-1">
                   ✕ Hủy đơn
                 </Button>
               </div>
             </div>
           )}
         </div>
-      </SheetContent>
-    </Sheet>
+      </motion.div>
+    </div>
   )
 }
 
@@ -303,7 +311,7 @@ export default function OrdersPage() {
 
       {/* Order detail sheet */}
       <AnimatePresence>
-        {selected && <OrderSheet order={selected} onClose={() => setSelected(null)} onStatusChange={changeStatus} />}
+        {selected && <OrderModal order={selected} onClose={() => setSelected(null)} onStatusChange={changeStatus} />}
       </AnimatePresence>
     </div>
   )

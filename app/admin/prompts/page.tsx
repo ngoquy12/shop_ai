@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import {
   Plus, Search, Edit2, Trash2, Copy, Eye, Star, Crown,
@@ -10,7 +10,6 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet"
 import { cn } from "@/lib/utils"
 import { ADMIN_PROMPTS, PROMPT_CATEGORIES, type AdminPrompt } from "@/lib/admin-data"
 
@@ -30,14 +29,22 @@ const EMPTY: Omit<AdminPrompt, "id" | "createdAt"> = {
   isPremium: false, isFeatured: false, views: 0, copies: 0, status: "active",
 }
 
-// ─── Prompt Form Sheet ─────────────────────────────────────────────────────
-function PromptSheet({ open, onClose, prompt, onSave }: {
+// ─── Prompt Form Modal ─────────────────────────────────────────────────────
+function PromptModal({ open, onClose, prompt, onSave }: {
   open: boolean; onClose: () => void
   prompt: AdminPrompt | null; onSave: (p: AdminPrompt) => void
 }) {
   const [form, setForm] = useState(prompt ? { ...prompt } : { ...EMPTY })
   const [tagInput, setTagInput] = useState("")
   const [copied, setCopied] = useState(false)
+
+  // Liên tục đồng bộ form mỗi khi mở modal
+  useEffect(() => {
+    if (open) {
+      setTimeout(() => setForm(prompt ? { ...prompt } : { ...EMPTY }), 0)
+    }
+  }, [open, prompt])
+
   const set = <K extends keyof typeof form>(k: K, v: typeof form[K]) => setForm(f => ({ ...f, [k]: v }))
 
   const addTag = () => {
@@ -60,116 +67,144 @@ function PromptSheet({ open, onClose, prompt, onSave }: {
   const categories = PROMPT_CATEGORIES.filter(c => c.id !== "all")
 
   return (
-    <Sheet open={open} onOpenChange={o => !o && onClose()}>
-      <SheetContent side="right" className="w-full sm:max-w-xl bg-[#111118] border-[rgba(255,255,255,0.08)] text-white overflow-y-auto">
-        <SheetHeader className="mb-5">
-          <SheetTitle className="text-white text-xl font-bold">
-            {prompt ? "Chỉnh sửa prompt" : "Thêm prompt mới"}
-          </SheetTitle>
-        </SheetHeader>
-
-        <div className="space-y-4 pb-8">
-          {/* Title */}
-          <div className="space-y-1.5">
-            <Label className="text-[#8b8b9e] text-xs">Tiêu đề *</Label>
-            <Input value={form.title} onChange={e => set("title", e.target.value)} placeholder="VD: Tạo video viral TikTok" className="admin-input" />
-          </div>
-
-          {/* Category */}
-          <div className="space-y-1.5">
-            <Label className="text-[#8b8b9e] text-xs">Danh mục</Label>
-            <div className="flex flex-wrap gap-2">
-              {categories.map(c => (
-                <button key={c.id} type="button" onClick={() => set("category", c.id)}
-                  className={cn("h-8 px-3 rounded-xl text-xs font-semibold border transition-all",
-                    form.category === c.id
-                      ? "border-blue-500/50 bg-blue-500/15 text-blue-400"
-                      : "border-[rgba(255,255,255,0.08)] text-[#8b8b9e] hover:text-white")}>
-                  {c.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Prompt content */}
-          <div className="space-y-1.5">
-            <div className="flex items-center justify-between">
-              <Label className="text-[#8b8b9e] text-xs">Nội dung Prompt *</Label>
-              <button onClick={copyContent}
-                className={cn("flex items-center gap-1 text-[10px] font-semibold px-2 py-1 rounded-lg transition-all",
-                  copied ? "text-green-400 bg-green-500/10" : "text-[#8b8b9e] hover:text-white hover:bg-white/8")}>
-                {copied ? <><CheckCircle2 className="w-3 h-3" /> Đã copy</> : <><Copy className="w-3 h-3" /> Copy</>}
+    <AnimatePresence>
+      {open && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6" onClick={(e) => { if (e.target === e.currentTarget) onClose() }}>
+          {/* Backdrop */}
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 bg-black/60 backdrop-blur-[2px]" />
+          
+          {/* Modal Content */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: 10 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 10 }}
+            transition={{ type: "spring", stiffness: 350, damping: 30 }}
+            className="relative z-10 w-full max-w-4xl max-h-[90vh] flex flex-col rounded-2xl border border-[rgba(255,255,255,0.08)] bg-[#111118] text-white shadow-2xl overflow-hidden"
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between px-6 py-4 border-b border-[rgba(255,255,255,0.08)] bg-[#0d0d14]">
+              <h2 className="text-xl font-bold">{prompt ? "Chỉnh sửa prompt" : "Thêm prompt mới"}</h2>
+              <button type="button" onClick={onClose} className="p-2 rounded-lg hover:bg-white/10 text-[#8b8b9e] hover:text-white transition-colors">
+                <X className="w-5 h-5" />
               </button>
             </div>
-            <Textarea
-              value={form.content}
-              onChange={e => set("content", e.target.value)}
-              rows={10}
-              placeholder="Nhập nội dung prompt... Dùng [PLACEHOLDER] cho các giá trị cần thay thế."
-              className="admin-input resize-y font-mono text-xs leading-relaxed"
-            />
-            <p className="text-[10px] text-[#8b8b9e]">{form.content.length} ký tự · {form.content.split("\n").length} dòng</p>
-          </div>
+            
+            {/* Body */}
+            <div className="flex-1 overflow-y-auto p-6 scrollbar-none">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                {/* Cột trái: Thông tin cơ bản */}
+                <div className="space-y-6">
+                  {/* Title */}
+                  <div className="space-y-1.5">
+                    <Label className="text-[#8b8b9e] text-xs">Tiêu đề *</Label>
+                    <Input value={form.title} onChange={e => set("title", e.target.value)} placeholder="VD: Tạo video viral TikTok" className="admin-input h-10" />
+                  </div>
 
-          {/* Tags */}
-          <div className="space-y-2">
-            <Label className="text-[#8b8b9e] text-xs">Tags</Label>
-            <div className="flex gap-2">
-              <Input value={tagInput} onChange={e => setTagInput(e.target.value)}
-                onKeyDown={e => e.key === "Enter" && (e.preventDefault(), addTag())}
-                placeholder="Nhập tag, nhấn Enter..." className="admin-input h-9 text-sm" />
-              <Button type="button" size="sm" onClick={addTag} className="bg-blue-600 hover:bg-blue-700 text-white h-9 px-3">+</Button>
-            </div>
-            <div className="flex flex-wrap gap-1.5">
-              {form.tags.map(t => (
-                <span key={t} className="flex items-center gap-1 text-xs px-2.5 py-1 rounded-full bg-blue-500/15 border border-blue-500/20 text-blue-400">
-                  {t}
-                  <button onClick={() => set("tags", form.tags.filter(x => x !== t))}><X className="w-3 h-3" /></button>
-                </span>
-              ))}
-            </div>
-          </div>
+                  {/* Category */}
+                  <div className="space-y-1.5">
+                    <Label className="text-[#8b8b9e] text-xs">Danh mục</Label>
+                    <div className="flex flex-wrap gap-2">
+                      {categories.map(c => (
+                        <button key={c.id} type="button" onClick={() => set("category", c.id)}
+                          className={cn("h-8 px-3 rounded-xl text-xs font-semibold border transition-all",
+                            form.category === c.id
+                              ? "border-blue-500/50 bg-blue-500/15 text-blue-400"
+                              : "border-[rgba(255,255,255,0.08)] text-[#8b8b9e] hover:text-white")}>
+                          {c.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
 
-          {/* Toggles */}
-          <div className="space-y-2">
-            {[
-              { key: "isPremium" as const, label: "Prompt Premium", icon: <Crown className="w-3.5 h-3.5" />, desc: "Chỉ thành viên Pro mới xem được" },
-              { key: "isFeatured" as const, label: "Nổi bật", icon: <Star className="w-3.5 h-3.5" />, desc: "Hiển thị ưu tiên ở đầu danh sách" },
-            ].map(({ key, label, icon, desc }) => (
-              <div key={key} className="flex items-center justify-between p-3 rounded-xl border border-[rgba(255,255,255,0.07)] bg-[rgba(255,255,255,0.03)]">
-                <div className="flex items-start gap-2.5">
-                  <span className="text-[#8b8b9e] mt-0.5">{icon}</span>
-                  <div>
-                    <p className="text-sm font-medium text-white">{label}</p>
-                    <p className="text-xs text-[#8b8b9e] mt-0.5">{desc}</p>
+                  {/* Tags */}
+                  <div className="space-y-2">
+                    <Label className="text-[#8b8b9e] text-xs">Từ khóa (Tags)</Label>
+                    <div className="flex gap-2">
+                      <Input value={tagInput} onChange={e => setTagInput(e.target.value)}
+                        onKeyDown={e => e.key === "Enter" && (e.preventDefault(), addTag())}
+                        placeholder="Nhập tag, nhấn Enter..." className="admin-input h-10 text-sm" />
+                      <Button type="button" onClick={addTag} className="bg-blue-600 hover:bg-blue-700 text-white h-10 px-4">+</Button>
+                    </div>
+                    <div className="flex flex-wrap gap-1.5">
+                      {form.tags.map(t => (
+                        <span key={t} className="flex items-center gap-1 text-xs px-2.5 py-1 rounded-full bg-blue-500/15 border border-blue-500/20 text-blue-400">
+                          {t}
+                          <button onClick={() => set("tags", form.tags.filter(x => x !== t))}><X className="w-3 h-3" /></button>
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Toggles */}
+                  <div className="space-y-3">
+                    {[
+                      { key: "isPremium" as const, label: "Prompt Premium", icon: <Crown className="w-3.5 h-3.5" />, desc: "Dành riêng cho gói trả phí" },
+                      { key: "isFeatured" as const, label: "Nổi bật", icon: <Star className="w-3.5 h-3.5" />, desc: "Ghim lên đầu trang chủ" },
+                    ].map(({ key, label, icon, desc }) => (
+                      <div key={key} className="flex items-center justify-between p-3.5 rounded-xl border border-[rgba(255,255,255,0.07)] bg-[rgba(255,255,255,0.02)]">
+                        <div className="flex items-start gap-2.5">
+                          <span className="text-[#8b8b9e] mt-0.5">{icon}</span>
+                          <div>
+                            <p className="text-sm font-medium text-white">{label}</p>
+                            <p className="text-xs text-[#8b8b9e] mt-0.5">{desc}</p>
+                          </div>
+                        </div>
+                        <button type="button" onClick={() => set(key, !form[key])}>
+                          {form[key] ? <ToggleRight className="w-9 h-9 text-blue-500" /> : <ToggleLeft className="w-9 h-9 text-[#8b8b9e]" />}
+                        </button>
+                      </div>
+                    ))}
                   </div>
                 </div>
-                <button type="button" onClick={() => set(key, !form[key])}>
-                  {form[key] ? <ToggleRight className="w-8 h-8 text-blue-500" /> : <ToggleLeft className="w-8 h-8 text-[#8b8b9e]" />}
-                </button>
-              </div>
-            ))}
-            {/* Status */}
-            <div className="flex items-center justify-between p-3 rounded-xl border border-[rgba(255,255,255,0.07)] bg-[rgba(255,255,255,0.03)]">
-              <div>
-                <p className="text-sm font-medium text-white">Trạng thái hoạt động</p>
-                <p className="text-xs text-[#8b8b9e] mt-0.5">Hiển thị prompt cho người dùng</p>
-              </div>
-              <button type="button" onClick={() => set("status", form.status === "active" ? "inactive" : "active")}>
-                {form.status === "active" ? <ToggleRight className="w-8 h-8 text-blue-500" /> : <ToggleLeft className="w-8 h-8 text-[#8b8b9e]" />}
-              </button>
-            </div>
-          </div>
 
-          <div className="flex gap-3 pt-2">
-            <Button onClick={handleSave} className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold">
-              {prompt ? "Lưu thay đổi" : "Thêm prompt"}
-            </Button>
-            <Button variant="outline" onClick={onClose} className="border-[rgba(255,255,255,0.12)] text-[#8b8b9e] hover:text-white bg-transparent">Hủy</Button>
-          </div>
+                {/* Cột phải: Khung Prompt lớn */}
+                <div className="space-y-4 flex flex-col">
+                  {/* Status */}
+                  <div className="flex items-center justify-between p-3.5 rounded-xl border border-[rgba(255,255,255,0.07)] bg-[rgba(255,255,255,0.02)] shrink-0">
+                    <div>
+                      <p className="text-sm font-medium text-white">Xuất bản prompt</p>
+                      <p className="text-xs text-[#8b8b9e] mt-0.5">Hiển thị công khai với người dùng</p>
+                    </div>
+                    <button type="button" onClick={() => set("status", form.status === "active" ? "inactive" : "active")}>
+                      {form.status === "active" ? <ToggleRight className="w-9 h-9 text-blue-500" /> : <ToggleLeft className="w-9 h-9 text-[#8b8b9e]" />}
+                    </button>
+                  </div>
+
+                  <div className="flex-1 flex flex-col space-y-1.5 min-h-[300px]">
+                    <div className="flex items-center justify-between">
+                      <Label className="text-[#8b8b9e] text-xs">Nội dung Prompt *</Label>
+                      <button type="button" onClick={copyContent}
+                        className={cn("flex items-center gap-1 text-[10px] font-semibold px-2 py-1 rounded-lg transition-all",
+                          copied ? "text-green-400 bg-green-500/10" : "text-[#8b8b9e] hover:text-white hover:bg-[rgba(255,255,255,0.06)]")}>
+                        {copied ? <><CheckCircle2 className="w-3 h-3" /> Đã copy</> : <><Copy className="w-3 h-3" /> Copy nhanh</>}
+                      </button>
+                    </div>
+                    <Textarea
+                      value={form.content}
+                      onChange={e => set("content", e.target.value)}
+                      placeholder="Nhập nội dung template... &#10;Bạn có thể thiết lập các biến như [CHỦ_ĐỀ], [SỐ_LƯỢNG] để người dùng điền."
+                      className="admin-input flex-1 resize-none h-full font-mono text-sm leading-relaxed p-4"
+                    />
+                    <div className="flex justify-between items-center text-[10px] text-[#8b8b9e]">
+                      <span>Thủ thuật: Ký tự càng chi tiết kết quả AI càng tốt.</span>
+                      <span>{form.content.length} ký tự · {form.content.split("\n").length} dòng</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-[rgba(255,255,255,0.08)] bg-[#0d0d14]">
+              <Button type="button" variant="outline" onClick={onClose} className="border-[rgba(255,255,255,0.12)] text-[#8b8b9e] hover:text-white bg-transparent h-10 px-6">Hủy thay đổi</Button>
+              <Button type="button" onClick={handleSave} className="bg-blue-600 hover:bg-blue-700 text-white font-semibold h-10 px-8">
+                {prompt ? "Lưu thay đổi" : "Lưu & Thêm prompt"}
+              </Button>
+            </div>
+          </motion.div>
         </div>
-      </SheetContent>
-    </Sheet>
+      )}
+    </AnimatePresence>
   )
 }
 
@@ -495,7 +530,7 @@ export default function PromptsPage() {
         </div>
       </div>
 
-      <PromptSheet open={sheetOpen} onClose={() => setSheetOpen(false)} prompt={editing} onSave={handleSave} />
+      <PromptModal open={sheetOpen} onClose={() => setSheetOpen(false)} prompt={editing} onSave={handleSave} />
     </div>
   )
 }

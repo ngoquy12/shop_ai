@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import {
   Plus, Search, Edit2, Trash2,
@@ -10,7 +10,6 @@ import {
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { cn } from "@/lib/utils"
@@ -101,8 +100,8 @@ function ColorPicker({ value, onChange }: { value: string; onChange: (c: string)
   )
 }
 
-// ─── Product Form Sheet ─────────────────────────────────────────────────────
-function ProductSheet({
+// ─── Product Form Modal ─────────────────────────────────────────────────────
+function ProductModal({
   open, onClose, product, onSave,
 }: {
   open: boolean; onClose: () => void
@@ -111,6 +110,12 @@ function ProductSheet({
   const [form, setForm] = useState<Omit<AdminProduct, "id" | "createdAt">>(
     product ? { ...product } : { ...EMPTY_FORM }
   )
+
+  useEffect(() => {
+    if (open) {
+      setTimeout(() => setForm(product ? { ...product } : { ...EMPTY_FORM }), 0)
+    }
+  }, [open, product])
 
   const isEdit = !!product
 
@@ -140,181 +145,158 @@ function ProductSheet({
   const categories = aiToolCategories.filter((c) => c.id !== "all")
 
   return (
-    <Sheet open={open} onOpenChange={(o) => !o && onClose()}>
-      <SheetContent
-        side="right"
-        className="w-full sm:max-w-lg bg-[#111118] border-[rgba(255,255,255,0.08)] text-white overflow-y-auto"
-      >
-        <SheetHeader className="mb-6">
-          <SheetTitle className="text-white text-xl font-bold">
-            {isEdit ? "Chỉnh sửa sản phẩm" : "Thêm sản phẩm mới"}
-          </SheetTitle>
-        </SheetHeader>
-
-        <div className="space-y-5 pb-8">
-          {/* Preview */}
-          <div className="flex items-center gap-3 p-4 rounded-xl bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.07)]">
-            <div
-              className="w-12 h-12 rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-lg shrink-0"
-              style={{ backgroundColor: form.bgColor }}
-            >
-              {form.icon}
-            </div>
-            <div>
-              <p className="font-semibold text-white leading-snug">{form.name || "Tên sản phẩm"}</p>
-              <p className="text-sm text-blue-400 font-bold mt-0.5">
-                {form.salePrice ? fmt(form.salePrice) : "—"}
-                {form.discount > 0 && (
-                  <span className="ml-1.5 text-[10px] bg-red-500/15 text-red-400 px-1.5 py-0.5 rounded-full border border-red-500/20 font-semibold">
-                    -{form.discount}%
-                  </span>
-                )}
-              </p>
-            </div>
-            {form.hot && (
-              <span className="ml-auto flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-orange-500/15 text-orange-400 border border-orange-500/20">
-                <Flame className="w-3 h-3" /> Hot
-              </span>
-            )}
-          </div>
-
-          {/* Name */}
-          <div className="space-y-1.5">
-            <Label className="text-[#8b8b9e] text-xs">Tên sản phẩm *</Label>
-            <Input value={form.name} onChange={(e) => set("name", e.target.value)} placeholder="VD: ChatGPT Plus" className="admin-input" />
-          </div>
-
-          {/* Category */}
-          <div className="space-y-1.5">
-            <Label className="text-[#8b8b9e] text-xs">Danh mục</Label>
-            <select
-              value={form.category}
-              onChange={(e) => set("category", e.target.value)}
-              className="w-full px-3 py-2.5 rounded-xl border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.05)] text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/40"
-            >
-              {categories.map((c) => (
-                <option key={c.id} value={c.id} className="bg-[#111118]">{c.label}</option>
-              ))}
-            </select>
-          </div>
-
-          {/* Description */}
-          <div className="space-y-1.5">
-            <Label className="text-[#8b8b9e] text-xs">Mô tả</Label>
-            <Textarea
-              value={form.description}
-              onChange={(e) => set("description", e.target.value)}
-              rows={3}
-              placeholder="Mô tả ngắn gọn về sản phẩm..."
-              className="admin-input resize-none"
-            />
-          </div>
-
-          {/* Prices */}
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <Label className="text-[#8b8b9e] text-xs">Giá gốc (đ)</Label>
-              <Input
-                type="number"
-                value={form.originalPrice || ""}
-                onChange={(e) => set("originalPrice", Number(e.target.value))}
-                placeholder="0"
-                className="admin-input"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-[#8b8b9e] text-xs">Giá sale (đ)</Label>
-              <Input
-                type="number"
-                value={form.salePrice || ""}
-                onChange={(e) => set("salePrice", Number(e.target.value))}
-                placeholder="0"
-                className="admin-input"
-              />
-            </div>
-          </div>
-
-          {/* Discount display */}
-          {form.discount > 0 && (
-            <div className="flex items-center gap-2 text-sm text-green-400">
-              <TrendingDown className="w-4 h-4" />
-              Giảm <strong>{form.discount}%</strong> — Tiết kiệm <strong>{fmt(form.originalPrice - form.salePrice)}</strong>
-            </div>
-          )}
-
-          {/* External URL */}
-          <div className="space-y-1.5">
-            <Label className="text-[#8b8b9e] text-xs">External URL</Label>
-            <Input value={form.externalUrl} onChange={(e) => set("externalUrl", e.target.value)} placeholder="https://..." className="admin-input" />
-          </div>
-
-          {/* Sold count */}
-          <div className="space-y-1.5">
-            <Label className="text-[#8b8b9e] text-xs">Số đã bán</Label>
-            <Input type="number" value={form.soldCount || ""} onChange={(e) => set("soldCount", Number(e.target.value))} placeholder="0" className="admin-input" />
-          </div>
-
-          {/* Tags */}
-          <div className="space-y-1.5">
-            <Label className="text-[#8b8b9e] text-xs">Tags</Label>
-            <TagInput tags={form.tags} onChange={(t) => set("tags", t)} />
-          </div>
-
-          {/* Icon + Color */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1.5">
-              <Label className="text-[#8b8b9e] text-xs">Ký tự icon</Label>
-              <Input
-                value={form.icon}
-                onChange={(e) => set("icon", e.target.value.slice(0, 1).toUpperCase())}
-                maxLength={1}
-                className="admin-input text-center font-bold text-lg"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-[#8b8b9e] text-xs">Màu nền icon</Label>
-              <div className="p-2 rounded-xl border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.03)]">
-                <ColorPicker value={form.bgColor} onChange={(c) => set("bgColor", c)} />
-              </div>
-            </div>
-          </div>
-
-          {/* Toggles */}
-          <div className="space-y-3">
-            {/* Hot Deal toggle */}
-            <div className="flex items-center justify-between p-3 rounded-xl border border-[rgba(255,255,255,0.07)] bg-[rgba(255,255,255,0.03)]">
-              <div>
-                <p className="text-sm font-medium text-white">Hot Deal 🔥</p>
-                <p className="text-xs text-[#8b8b9e] mt-0.5">Hiển thị badge Hot, ưu tiên trong danh sách</p>
-              </div>
-              <button type="button" onClick={() => set("hot", !form.hot)} className="transition-colors">
-                {form.hot ? <ToggleRight className="w-8 h-8 text-blue-500" /> : <ToggleLeft className="w-8 h-8 text-[#8b8b9e]" />}
+    <AnimatePresence>
+      {open && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6" onClick={(e) => { if (e.target === e.currentTarget) onClose() }}>
+          {/* Backdrop */}
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 bg-black/60 backdrop-blur-[2px]" />
+          
+          {/* Modal */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: 10 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 10 }}
+            transition={{ type: "spring", stiffness: 350, damping: 30 }}
+            className="relative z-10 w-full max-w-4xl max-h-[90vh] flex flex-col rounded-2xl border border-[rgba(255,255,255,0.08)] bg-[#111118] text-white shadow-2xl overflow-hidden"
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between px-6 py-4 border-b border-[rgba(255,255,255,0.08)] bg-[#0d0d14]">
+              <h2 className="text-xl font-bold">{isEdit ? "Chỉnh sửa sản phẩm" : "Thêm sản phẩm mới"}</h2>
+              <button type="button" onClick={onClose} className="p-2 rounded-lg hover:bg-white/10 text-[#8b8b9e] hover:text-white transition-colors">
+                <X className="w-5 h-5" />
               </button>
             </div>
-            {/* Status toggle */}
-            <div className="flex items-center justify-between p-3 rounded-xl border border-[rgba(255,255,255,0.07)] bg-[rgba(255,255,255,0.03)]">
-              <div>
-                <p className="text-sm font-medium text-white">Đang bán</p>
-                <p className="text-xs text-[#8b8b9e] mt-0.5">Hiển thị sản phẩm trên trang người dùng</p>
-              </div>
-              <button type="button" onClick={() => set("status", form.status === "active" ? "inactive" : "active")} className="transition-colors">
-                {form.status === "active" ? <ToggleRight className="w-8 h-8 text-blue-500" /> : <ToggleLeft className="w-8 h-8 text-[#8b8b9e]" />}
-              </button>
-            </div>
-          </div>
 
-          {/* Actions */}
-          <div className="flex gap-3 pt-2">
-            <Button onClick={handleSave} className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold">
-              {isEdit ? "Lưu thay đổi" : "Thêm sản phẩm"}
-            </Button>
-            <Button variant="outline" onClick={onClose} className="border-[rgba(255,255,255,0.12)] text-[#8b8b9e] hover:text-white bg-transparent">
-              Hủy
-            </Button>
-          </div>
+            {/* Body */}
+            <div className="flex-1 overflow-y-auto p-6 scrollbar-none">
+              {/* Preview banner inside modal */}
+              <div className="flex items-center gap-3 p-4 mb-6 rounded-xl bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.07)] max-w-full">
+                <div className="w-12 h-12 rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-lg shrink-0" style={{ backgroundColor: form.bgColor }}>
+                  {form.icon}
+                </div>
+                <div className="flex-1">
+                  <p className="font-semibold text-white leading-snug">{form.name || "Tên sản phẩm"}</p>
+                  <p className="text-sm text-blue-400 font-bold mt-0.5">
+                    {form.salePrice ? fmt(form.salePrice) : "—"}
+                    {form.discount > 0 && <span className="ml-1.5 text-[10px] bg-red-500/15 text-red-400 px-1.5 py-0.5 rounded-full border border-red-500/20 font-semibold">-{form.discount}%</span>}
+                  </p>
+                </div>
+                {form.hot && <span className="flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-orange-500/15 text-orange-400 border border-orange-500/20 shrink-0"><Flame className="w-3 h-3" /> Hot</span>}
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                {/* Left Column */}
+                <div className="space-y-5">
+                  <div className="space-y-1.5">
+                    <Label className="text-[#8b8b9e] text-xs">Tên sản phẩm *</Label>
+                    <Input value={form.name} onChange={(e) => set("name", e.target.value)} placeholder="VD: ChatGPT Plus" className="admin-input h-10" />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <Label className="text-[#8b8b9e] text-xs">Danh mục</Label>
+                    <select
+                      value={form.category}
+                      onChange={(e) => set("category", e.target.value)}
+                      className="w-full h-10 px-3 rounded-xl border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.05)] text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/40"
+                    >
+                      {categories.map((c) => <option key={c.id} value={c.id} className="bg-[#111118]">{c.label}</option>)}
+                    </select>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <Label className="text-[#8b8b9e] text-xs">Mô tả</Label>
+                    <Textarea value={form.description} onChange={(e) => set("description", e.target.value)} rows={3} placeholder="Mô tả ngắn gọn về sản phẩm..." className="admin-input resize-none" />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <Label className="text-[#8b8b9e] text-xs">Ký tự icon (1 chữ)</Label>
+                      <Input value={form.icon} onChange={(e) => set("icon", e.target.value.slice(0, 1).toUpperCase())} maxLength={1} className="admin-input text-center font-bold text-lg h-10" />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-[#8b8b9e] text-xs">Màu nền icon</Label>
+                      <div className="p-2 rounded-xl border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.03)] flex flex-wrap gap-2">
+                        <ColorPicker value={form.bgColor} onChange={(c) => set("bgColor", c)} />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Right Column */}
+                <div className="space-y-5">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <Label className="text-[#8b8b9e] text-xs">Giá gốc (đ)</Label>
+                      <Input type="number" value={form.originalPrice || ""} onChange={(e) => set("originalPrice", Number(e.target.value))} placeholder="0" className="admin-input h-10" />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-[#8b8b9e] text-xs">Giá sale (đ)</Label>
+                      <Input type="number" value={form.salePrice || ""} onChange={(e) => set("salePrice", Number(e.target.value))} placeholder="0" className="admin-input h-10" />
+                    </div>
+                  </div>
+
+                  {form.discount > 0 && (
+                    <div className="flex items-center gap-2 text-sm text-green-400">
+                      <TrendingDown className="w-4 h-4" /> Giảm <strong>{form.discount}%</strong>
+                    </div>
+                  )}
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <Label className="text-[#8b8b9e] text-xs">Số lượng đã bán</Label>
+                      <Input type="number" value={form.soldCount || ""} onChange={(e) => set("soldCount", Number(e.target.value))} placeholder="0" className="admin-input h-10" />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-[#8b8b9e] text-xs">External URL</Label>
+                      <Input value={form.externalUrl} onChange={(e) => set("externalUrl", e.target.value)} placeholder="https://..." className="admin-input h-10" />
+                    </div>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <Label className="text-[#8b8b9e] text-xs">Tags</Label>
+                    <TagInput tags={form.tags} onChange={(t) => set("tags", t)} />
+                  </div>
+
+                  {/* Toggles */}
+                  <div className="space-y-3 pt-2">
+                    <div className="flex items-center justify-between p-3.5 rounded-xl border border-[rgba(255,255,255,0.07)] bg-[rgba(255,255,255,0.03)]">
+                      <div>
+                        <p className="text-sm font-medium text-white">Hot Deal 🔥</p>
+                        <p className="text-xs text-[#8b8b9e] mt-0.5">Hiển thị badge nổi bật</p>
+                      </div>
+                      <button type="button" onClick={() => set("hot", !form.hot)} className="transition-colors">
+                        {form.hot ? <ToggleRight className="w-9 h-9 text-blue-500" /> : <ToggleLeft className="w-9 h-9 text-[#8b8b9e]" />}
+                      </button>
+                    </div>
+                    
+                    <div className="flex items-center justify-between p-3.5 rounded-xl border border-[rgba(255,255,255,0.07)] bg-[rgba(255,255,255,0.03)]">
+                      <div>
+                        <p className="text-sm font-medium text-white">Đang bán</p>
+                        <p className="text-xs text-[#8b8b9e] mt-0.5">Hiển thị công khai với khách hàng</p>
+                      </div>
+                      <button type="button" onClick={() => set("status", form.status === "active" ? "inactive" : "active")} className="transition-colors">
+                        {form.status === "active" ? <ToggleRight className="w-9 h-9 text-blue-500" /> : <ToggleLeft className="w-9 h-9 text-[#8b8b9e]" />}
+                      </button>
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-[rgba(255,255,255,0.08)] bg-[#0d0d14]">
+              <Button type="button" variant="outline" onClick={onClose} className="border-[rgba(255,255,255,0.12)] text-[#8b8b9e] hover:text-white bg-transparent h-10 px-6">
+                Hủy bỏ
+              </Button>
+              <Button type="button" onClick={handleSave} className="bg-blue-600 hover:bg-blue-700 text-white font-semibold h-10 px-8">
+                {isEdit ? "Lưu thay đổi" : "Lưu & Thêm sản phẩm"}
+              </Button>
+            </div>
+          </motion.div>
         </div>
-      </SheetContent>
-    </Sheet>
+      )}
+    </AnimatePresence>
   )
 }
 
@@ -711,8 +693,8 @@ export default function ProductsPage() {
         </div>
       </div>
 
-      {/* Product Sheet */}
-      <ProductSheet
+      {/* Product Modal */}
+      <ProductModal
         open={sheetOpen}
         onClose={() => setSheetOpen(false)}
         product={editing}

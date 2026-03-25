@@ -67,10 +67,16 @@ const overlayVariants = {
 export function Navbar() {
   const pathname = usePathname();
   const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const user = MOCK_USER as { name: string; email: string } | null;
+
+  useEffect(() => {
+    const timer = setTimeout(() => setMounted(true), 0);
+    return () => clearTimeout(timer);
+  }, []);
 
   const { scrollY } = useScroll();
   useMotionValueEvent(scrollY, "change", (y) => setScrolled(y > 20));
@@ -195,7 +201,7 @@ export function Navbar() {
                 aria-label="Toggle theme"
               >
                 <AnimatePresence mode="wait">
-                  {theme === "dark" ? (
+                  {!mounted || theme === "dark" ? (
                     <motion.div
                       key="sun"
                       initial={{ rotate: -90, opacity: 0 }}

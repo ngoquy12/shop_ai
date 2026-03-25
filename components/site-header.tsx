@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -38,29 +38,7 @@ const MOCK_USER = {
   avatar: null as string | null,
 };
 
-const QUICK_TABS = [
-  {
-    icon: Bot,
-    label: "AI Tools",
-    href: "/ai-tools",
-    color: "text-blue-400",
-    hoverBg: "hover:bg-blue-500/10",
-  },
-  {
-    icon: BookOpen,
-    label: "Khóa học",
-    href: "/khoa-hoc-ai",
-    color: "text-violet-400",
-    hoverBg: "hover:bg-violet-500/10",
-  },
-  {
-    icon: TrendingUp,
-    label: "Flash Sale",
-    href: "/ai-tools?filter=hot",
-    color: "text-orange-400",
-    hoverBg: "hover:bg-orange-500/10",
-  },
-];
+
 
 const CART_COUNT = 3;
 
@@ -104,12 +82,17 @@ const USER_MENU_SECTIONS = [
 export function SiteHeader() {
   const { setMobileOpen } = useSidebar();
   const { theme, setTheme } = useTheme();
-  const pathname = usePathname();
+  const [mounted, setMounted] = useState(false);
   const user = MOCK_USER;
   const [searchOpen, setSearchOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
   const [logoutOpen, setLogoutOpen] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setMounted(true), 0);
+    return () => clearTimeout(timer);
+  }, []);
 
   const initials = user.name
     .split(" ")
@@ -297,7 +280,7 @@ export function SiteHeader() {
             aria-label="Đổi giao diện"
           >
             <AnimatePresence mode="wait">
-              {theme === "dark" ? (
+              {!mounted || theme === "dark" ? (
                 <motion.div
                   key="sun"
                   initial={{ rotate: -90, opacity: 0 }}
