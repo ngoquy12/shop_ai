@@ -7,22 +7,18 @@ import {
   Sparkles,
   Menu,
   X,
-  Sun,
-  Moon,
   Bot,
-  Wrench,
-  Globe2,
-  BookOpen,
   ShoppingCart,
   LogIn,
   UserPlus,
   User,
   LogOut,
-  Settings,
   ChevronDown,
   Wand2,
+  Wallet,
+  Settings,
 } from "lucide-react";
-import { useTheme } from "next-themes";
+
 import {
   motion,
   AnimatePresence,
@@ -30,21 +26,12 @@ import {
   useMotionValueEvent,
 } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 
 const navItems = [
-  { label: "Công cụ AI", href: "/ai-tools", icon: Bot },
-  { label: "Prompt miễn phí", href: "/prompt-mien-phi", icon: Wand2 },
-  { label: "Dịch vụ", href: "/services", icon: Wrench },
+  { label: "Công cụ AI", href: "/cong-cu-ai", icon: Bot },
+  { label: "Prompt miễn phí", href: "/prompts-mien-phi", icon: Wand2 },
 ];
-const otherItems = [
-  { label: "Làm website theo yêu cầu", href: "/lam-website", icon: Globe2 },
-  { label: "Khóa học AI", href: "/khoa-hoc-ai", icon: BookOpen },
-];
-
-const MOCK_USER = null;
-// const MOCK_USER = { name: "Nguyễn Văn A", email: "nguyen@email.com" }
 
 const EASE = [0.22, 1, 0.36, 1] as [number, number, number, number];
 
@@ -64,19 +51,21 @@ const overlayVariants = {
   exit: { opacity: 0 },
 };
 
+import { useMyCart } from "@/features/carts/hooks/use-carts";
+import { useProfile } from "@/features/auth/hooks/use-profile";
+import { useBalance } from "@/features/wallets/hooks/use-wallets";
+import { TopupModal } from "@/features/wallets/components/TopupModal";
+import { formatCurrency } from "@/lib/utils";
+
 export function Navbar() {
   const pathname = usePathname();
-  const { theme, setTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [isTopupOpen, setIsTopupOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const user = MOCK_USER as { name: string; email: string } | null;
 
-  useEffect(() => {
-    const timer = setTimeout(() => setMounted(true), 0);
-    return () => clearTimeout(timer);
-  }, []);
+  const { data: user } = useProfile();
+  const { data: balanceData } = useBalance();
 
   const { scrollY } = useScroll();
   useMotionValueEvent(scrollY, "change", (y) => setScrolled(y > 20));
@@ -95,7 +84,8 @@ export function Navbar() {
     };
   }, [mobileOpen]);
 
-  const cartCount = 3; // TODO: connect to global state
+  const cartQuery = useMyCart();
+  const cartCount = cartQuery.data?.items?.length || 0;
 
   return (
     <>
@@ -157,74 +147,10 @@ export function Navbar() {
                   </Link>
                 );
               })}
-
-              <Separator orientation="vertical" className="mx-2 h-5" />
-
-              {otherItems.map(({ label, href, icon: Icon }) => {
-                const active = pathname === href;
-                return (
-                  <Link
-                    key={href}
-                    href={href}
-                    className={cn(
-                      "relative flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap",
-                      active
-                        ? "text-primary"
-                        : "text-muted-foreground hover:text-foreground hover:bg-accent",
-                    )}
-                  >
-                    <Icon className="w-4 h-4" />
-                    {label}
-                    {active && (
-                      <motion.div
-                        layoutId="nav-indicator"
-                        className="absolute inset-0 rounded-lg bg-primary/10"
-                        transition={{
-                          type: "spring",
-                          bounce: 0.2,
-                          duration: 0.4,
-                        }}
-                      />
-                    )}
-                  </Link>
-                );
-              })}
             </nav>
 
             {/* Right Actions */}
             <div className="flex items-center gap-1.5 shrink-0">
-              {/* Theme Toggle */}
-              <motion.button
-                whileTap={{ scale: 0.9 }}
-                onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-                className="rounded-lg w-9 h-9 flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
-                aria-label="Toggle theme"
-              >
-                <AnimatePresence mode="wait">
-                  {!mounted || theme === "dark" ? (
-                    <motion.div
-                      key="sun"
-                      initial={{ rotate: -90, opacity: 0 }}
-                      animate={{ rotate: 0, opacity: 1 }}
-                      exit={{ rotate: 90, opacity: 0 }}
-                      transition={{ duration: 0.2 }}
-                    >
-                      <Sun className="h-4 w-4" />
-                    </motion.div>
-                  ) : (
-                    <motion.div
-                      key="moon"
-                      initial={{ rotate: 90, opacity: 0 }}
-                      animate={{ rotate: 0, opacity: 1 }}
-                      exit={{ rotate: -90, opacity: 0 }}
-                      transition={{ duration: 0.2 }}
-                    >
-                      <Moon className="h-4 w-4" />
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </motion.button>
-
               {/* Cart */}
               <motion.div whileTap={{ scale: 0.9 }}>
                 <Button
@@ -234,7 +160,7 @@ export function Navbar() {
                   aria-label="Giỏ hàng"
                   asChild
                 >
-                  <Link href="/cart">
+                  <Link href="/gio-hang">
                     <ShoppingCart className="h-4 w-4" />
                     <AnimatePresence>
                       {cartCount > 0 && (
@@ -264,11 +190,11 @@ export function Navbar() {
                   >
                     <div className="w-7 h-7 rounded-full bg-linear-to-br from-blue-500 to-violet-600 flex items-center justify-center">
                       <span className="text-white font-bold text-xs">
-                        {user.name.charAt(0).toUpperCase()}
+                        {user.fullName?.charAt(0).toUpperCase() || "U"}
                       </span>
                     </div>
                     <span className="text-sm font-medium hidden md:block max-w-[100px] truncate">
-                      {user.name}
+                      {user.fullName || "User"}
                     </span>
                     <motion.div
                       animate={{ rotate: userMenuOpen ? 180 : 0 }}
@@ -294,22 +220,45 @@ export function Navbar() {
                         >
                           <div className="px-4 py-2.5 border-b border-border/50">
                             <p className="font-semibold text-sm truncate">
-                              {user.name}
+                              {user.fullName || "Người dùng"}
                             </p>
                             <p className="text-xs text-muted-foreground truncate">
                               {user.email}
                             </p>
                           </div>
+
+                          {/* Bóp Ví */}
+                          <div className="px-4 py-3 border-b border-border/50 bg-slate-50/50">
+                            <div className="flex justify-between items-center mb-2">
+                              <span className="text-xs text-slate-500 font-medium">
+                                Số dư khả dụng
+                              </span>
+                              <Wallet className="w-3.5 h-3.5 text-blue-600" />
+                            </div>
+                            <div className="font-bold text-lg text-slate-900 mb-2">
+                              {formatCurrency(balanceData?.balance)}
+                            </div>
+                            <Button
+                              size="sm"
+                              className="w-full h-8 text-xs bg-blue-600 hover:bg-blue-700"
+                              onClick={() => {
+                                setUserMenuOpen(false);
+                                setIsTopupOpen(true);
+                              }}
+                            >
+                              Nạp tiền ngay
+                            </Button>
+                          </div>
                           {[
                             {
                               icon: User,
                               label: "Trang cá nhân",
-                              href: "/profile",
+                              href: "/tai-khoan",
                             },
                             {
                               icon: Settings,
                               label: "Cài đặt tài khoản",
-                              href: "/settings",
+                              href: "/tai-khoan/settings",
                             },
                           ].map(({ icon: Icon, label, href }) => (
                             <Link
@@ -342,7 +291,7 @@ export function Navbar() {
                     asChild
                     className="gap-1.5 font-medium"
                   >
-                    <Link href="/login">
+                    <Link href="/dang-nhap">
                       <LogIn className="w-4 h-4" />
                       Đăng nhập
                     </Link>
@@ -353,7 +302,7 @@ export function Navbar() {
                     asChild
                     className="bg-blue-600 hover:bg-blue-700 text-white shadow-md shadow-blue-500/20 gap-1.5"
                   >
-                    <Link href="/register">
+                    <Link href="/dang-ky">
                       <UserPlus className="w-4 h-4" />
                       Đăng ký
                     </Link>
@@ -434,7 +383,10 @@ export function Navbar() {
                     className="flex-1 gap-1.5"
                     asChild
                   >
-                    <Link href="/login" onClick={() => setMobileOpen(false)}>
+                    <Link
+                      href="/dang-nhap"
+                      onClick={() => setMobileOpen(false)}
+                    >
                       <LogIn className="w-4 h-4" />
                       Đăng nhập
                     </Link>
@@ -444,7 +396,7 @@ export function Navbar() {
                     className="flex-1 bg-blue-600 hover:bg-blue-700 text-white gap-1.5"
                     asChild
                   >
-                    <Link href="/register" onClick={() => setMobileOpen(false)}>
+                    <Link href="/dang-ky" onClick={() => setMobileOpen(false)}>
                       <UserPlus className="w-4 h-4" />
                       Đăng ký
                     </Link>
@@ -479,42 +431,12 @@ export function Navbar() {
                     </Link>
                   </motion.div>
                 ))}
-
-                <div className="my-3 border-t border-border/40" />
-                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2 mb-2">
-                  Dịch vụ khác
-                </p>
-                {otherItems.map(({ label, href, icon: Icon }, i) => (
-                  <motion.div
-                    key={href}
-                    initial={{ opacity: 0, x: -16 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{
-                      delay: (navItems.length + i + 1) * 0.05,
-                      duration: 0.3,
-                    }}
-                  >
-                    <Link
-                      href={href}
-                      onClick={() => setMobileOpen(false)}
-                      className={cn(
-                        "flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
-                        pathname === href
-                          ? "bg-primary/10 text-primary"
-                          : "text-foreground hover:bg-accent",
-                      )}
-                    >
-                      <Icon className="w-4 h-4" />
-                      {label}
-                    </Link>
-                  </motion.div>
-                ))}
               </div>
 
               {/* Bottom cart */}
               <div className="p-4 border-t border-border/50">
                 <Link
-                  href="/cart"
+                  href="/gio-hang"
                   onClick={() => setMobileOpen(false)}
                   className="flex items-center justify-between px-3 py-2.5 rounded-lg bg-blue-500/10 border border-blue-500/20 text-sm font-medium text-blue-400 hover:bg-blue-500/15 transition-colors"
                 >
@@ -533,6 +455,7 @@ export function Navbar() {
           </>
         )}
       </AnimatePresence>
+      <TopupModal isOpen={isTopupOpen} onClose={() => setIsTopupOpen(false)} />
     </>
   );
 }

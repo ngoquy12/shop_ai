@@ -1,16 +1,8 @@
 "use client";
 
-import { useState, useMemo } from "react";
-import {
-  Search,
-  ShoppingCart,
-  ExternalLink,
-  Flame,
-  TrendingDown,
-  Heart,
-} from "lucide-react";
+import { useState, useMemo, useEffect, useCallback } from "react";
+import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   motion,
@@ -18,202 +10,129 @@ import {
   LayoutGroup,
   type Variants,
 } from "framer-motion";
-import { aiTools, aiToolCategories, type AITool } from "@/lib/data";
+import { useCategories } from "@/features/categories/hooks/use-categories";
 import { cn } from "@/lib/utils";
+import { AIToolCard } from "@/components/ai-tool-card";
+import { useInfiniteAiTools } from "@/features/ai-tools/hooks/use-ai-tools";
 
-function formatPrice(price: number) {
-  return price.toLocaleString("vi-VN") + "đ";
-}
-
-const cardVariants: Variants = {
-  hidden: { opacity: 0, y: 24, scale: 0.97 },
-  show: { opacity: 1, y: 0, scale: 1 },
-  exit: { opacity: 0, scale: 0.95 },
-};
-
-const stagger: Variants = {
+export const stagger: Variants = {
   hidden: {},
   show: { transition: { staggerChildren: 0.065 } },
 };
 
-function ToolCard({ tool }: { tool: AITool }) {
-  const [wished, setWished] = useState(false);
-  const [added, setAdded] = useState(false);
-
-  const handleAdd = () => {
-    setAdded(true);
-    setTimeout(() => setAdded(false), 1800);
-  };
-
-  return (
-    <motion.div
-      variants={cardVariants}
-      layout
-      className="group relative rounded-2xl border border-border/60 bg-card overflow-hidden"
-      whileHover={{ y: -4, transition: { duration: 0.2 } }}
-      style={{ boxShadow: "0 0 0 0 rgba(59,130,246,0)" }}
-      whileInView={{ boxShadow: "0 0 0 0 rgba(59,130,246,0)" }}
-    >
-      {/* Hover glow */}
-      <div className="absolute inset-0 rounded-2xl bg-linear-to-br from-blue-500/0 to-violet-500/0 group-hover:from-blue-500/5 group-hover:to-violet-500/5 transition-all duration-300 pointer-events-none" />
-
-      {/* Wishlist button */}
-      <motion.button
-        whileTap={{ scale: 0.8 }}
-        onClick={() => setWished((w) => !w)}
-        className={cn(
-          "absolute top-3 right-3 z-10 w-7 h-7 rounded-full flex items-center justify-center transition-all duration-200",
-          wished
-            ? "bg-red-500 text-white"
-            : "bg-background/80 backdrop-blur-sm text-muted-foreground hover:text-red-400",
-        )}
-        aria-label="Yêu thích"
-      >
-        <Heart className={cn("w-3.5 h-3.5", wished && "fill-white")} />
-      </motion.button>
-
-      <div className="p-4 sm:p-5">
-        {/* Header */}
-        <div className="flex items-start gap-3 mb-3 pr-8">
-          <motion.div
-            whileHover={{ rotate: [0, -5, 5, 0] }}
-            transition={{ duration: 0.4 }}
-            className="w-12 h-12 rounded-xl flex items-center justify-center text-white font-extrabold text-xl shrink-0 shadow-lg"
-            style={{ backgroundColor: tool.bgColor }}
-          >
-            {tool.icon}
-          </motion.div>
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 flex-wrap">
-              <h3 className="font-semibold text-sm sm:text-base leading-snug text-foreground line-clamp-2">
-                {tool.name}
-              </h3>
-              {tool.hot && (
-                <Badge className="bg-orange-500/15 text-orange-500 border-orange-500/20 gap-1 shrink-0 hover:bg-orange-500/20">
-                  <Flame className="w-3 h-3" />
-                  Hot
-                </Badge>
-              )}
-            </div>
-            <Badge variant="secondary" className="mt-1.5 text-xs font-medium">
-              {tool.category.replace("-", " ")}
-            </Badge>
-          </div>
-        </div>
-
-        {/* Description */}
-        <p className="text-sm text-muted-foreground leading-relaxed line-clamp-2 mb-3">
-          {tool.description}
-        </p>
-
-        {/* Tags */}
-        <div className="flex flex-wrap gap-1.5 mb-4">
-          {tool.tags.slice(0, 3).map((tag) => (
-            <span
-              key={tag}
-              className="text-xs px-2.5 py-1 rounded-full bg-muted text-muted-foreground border border-border/50"
-            >
-              {tag}
-            </span>
-          ))}
-        </div>
-
-        {/* Price + Actions */}
-        <div className="flex items-center justify-between gap-3 pt-3 border-t border-border/50">
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-sm text-muted-foreground line-through">
-              {formatPrice(tool.originalPrice)}
-            </span>
-            <span className="text-base sm:text-lg font-bold text-blue-500">
-              {formatPrice(tool.salePrice)}
-            </span>
-            <Badge className="bg-red-500/15 text-red-500 border-red-500/20 gap-1 font-bold hover:bg-red-500/20">
-              <TrendingDown className="w-3 h-3" />-{tool.discount}%
-            </Badge>
-          </div>
-
-          <div className="flex items-center gap-1.5 shrink-0">
-            {tool.externalUrl && (
-              <motion.div whileTap={{ scale: 0.9 }}>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="w-8 h-8 rounded-lg text-muted-foreground hover:text-foreground"
-                  onClick={() => window.open(tool.externalUrl, "_blank")}
-                  aria-label="Xem trang gốc"
-                >
-                  <ExternalLink className="w-3.5 h-3.5" />
-                </Button>
-              </motion.div>
-            )}
-            <motion.div whileTap={{ scale: 0.9 }}>
-              <Button
-                size="sm"
-                onClick={handleAdd}
-                className={cn(
-                  "h-8 gap-1.5 rounded-lg shadow-md transition-all duration-200",
-                  added
-                    ? "bg-green-600 hover:bg-green-600 shadow-green-500/20"
-                    : "bg-blue-600 hover:bg-blue-700 shadow-blue-500/20",
-                )}
-                aria-label={`Thêm ${tool.name} vào giỏ`}
-              >
-                <AnimatePresence mode="wait">
-                  {added ? (
-                    <motion.span
-                      key="added"
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                      exit={{ scale: 0 }}
-                      className="flex items-center gap-1"
-                    >
-                      ✓ Đã thêm
-                    </motion.span>
-                  ) : (
-                    <motion.span
-                      key="add"
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                      exit={{ scale: 0 }}
-                      className="flex items-center gap-1"
-                    >
-                      <ShoppingCart className="w-3.5 h-3.5" />
-                      {tool.soldCount ? (
-                        <span className="text-white/80 text-xs">
-                          {tool.soldCount}
-                        </span>
-                      ) : (
-                        "Mua"
-                      )}
-                    </motion.span>
-                  )}
-                </AnimatePresence>
-              </Button>
-            </motion.div>
-          </div>
-        </div>
-      </div>
-    </motion.div>
-  );
-}
-
 export function AIToolsPage() {
   const [search, setSearch] = useState("");
   const [activeCategory, setActiveCategory] = useState("all");
+  const [activeTag, setActiveTag] = useState<string | null>(null);
+
+  const toolsQuery = useInfiniteAiTools({
+    pageSize: 4,
+    status: "ACTIVE",
+  });
+
+  const categoriesQuery = useCategories({
+    type: "TOOL",
+    page: 1,
+    limit: 100,
+  });
+
+  const tools = useMemo(() => {
+    return toolsQuery.data?.pages.flatMap((page) => page.data) || [];
+  }, [toolsQuery.data]);
+
+  const [isIntersecting, setIsIntersecting] = useState(false);
+  const [observerNode, setObserverNode] = useState<HTMLDivElement | null>(null);
+
+  const observerRef = useCallback((node: HTMLDivElement | null) => {
+    if (node) setObserverNode(node);
+  }, []);
+
+  const handleObserver = useCallback((entries: IntersectionObserverEntry[]) => {
+    const target = entries[0];
+    if (target) {
+      setIsIntersecting(target.isIntersecting);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!observerNode) return;
+    const option = { threshold: 0.1 };
+    const observer = new IntersectionObserver(handleObserver, option);
+    observer.observe(observerNode);
+    return () => observer.unobserve(observerNode);
+  }, [observerNode, handleObserver]);
+
+  const { hasNextPage, isFetchingNextPage, fetchNextPage } = toolsQuery;
+
+  useEffect(() => {
+    if (isIntersecting && hasNextPage && !isFetchingNextPage) {
+      fetchNextPage();
+    }
+  }, [isIntersecting, hasNextPage, isFetchingNextPage, fetchNextPage]);
+  const aiToolCategories = useMemo(() => {
+    const categoriesDb = categoriesQuery.data?.data || [];
+    const catMap = new Map();
+    categoriesDb.forEach((c: { id: string; name: string; slug: string }) => {
+      catMap.set(c.id, { id: c.id, label: c.name, slug: c.slug });
+    });
+    tools.forEach((t) => {
+      if (t.category) {
+        catMap.set(t.category.id, {
+          id: t.category.id,
+          label: t.category.name,
+          slug: t.category.slug,
+        });
+      } else if (t.categoryId && !catMap.has(t.categoryId)) {
+        catMap.set(t.categoryId, {
+          id: t.categoryId,
+          label: "Khác",
+          slug: t.categoryId,
+        });
+      }
+    });
+    return [
+      { id: "all", label: "Tất cả", slug: "all" },
+      ...Array.from(catMap.values()),
+    ];
+  }, [categoriesQuery.data?.data, tools]);
+
+  const allTags = useMemo(() => {
+    const tagsSet = new Set<string>();
+    tools.forEach((t) => {
+      if (t.tags) {
+        t.tags.forEach((tag: { id: string; name: string }) => {
+          if (tag.name) tagsSet.add(tag.name);
+        });
+      }
+    });
+    return Array.from(tagsSet);
+  }, [tools]);
 
   const filtered = useMemo(() => {
-    return aiTools.filter((tool) => {
+    return tools.filter((tool) => {
       const matchCat =
-        activeCategory === "all" || tool.category === activeCategory;
+        activeCategory === "all" ||
+        tool.categoryId === activeCategory ||
+        tool.category?.slug === activeCategory ||
+        tool.category?.id === activeCategory;
+      const matchTag =
+        !activeTag ||
+        (tool.tags &&
+          tool.tags.some(
+            (t: { id: string; name: string }) => t.name === activeTag,
+          ));
       const s = search.toLowerCase();
       const matchSearch =
         !s ||
         tool.name.toLowerCase().includes(s) ||
-        tool.description.toLowerCase().includes(s) ||
-        tool.tags.some((t) => t.toLowerCase().includes(s));
-      return matchCat && matchSearch;
+        (tool.description && tool.description.toLowerCase().includes(s)) ||
+        (tool.tags &&
+          tool.tags.some((t: { id: string; name: string }) =>
+            t.name?.toLowerCase().includes(s),
+          ));
+      return matchCat && matchTag && matchSearch;
     });
-  }, [search, activeCategory]);
+  }, [search, activeCategory, activeTag, tools]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -222,15 +141,15 @@ export function AIToolsPage() {
         <motion.div
           animate={{ scale: [1, 1.05, 1] }}
           transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-blue-500/8 rounded-full blur-3xl pointer-events-none"
+          className="absolute top-0 left-1/2 -translate-x-1/2 w-150 h-75 bg-blue-500/8 rounded-full blur-3xl pointer-events-none"
         />
         <motion.div
           animate={{ scale: [1.05, 1, 1.05] }}
           transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute top-10 left-1/4 w-[200px] h-[200px] bg-violet-500/8 rounded-full blur-2xl pointer-events-none"
+          className="absolute top-10 left-1/4 w-50 h-50 bg-violet-500/8 rounded-full blur-2xl pointer-events-none"
         />
 
-        <div className="relative max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 text-center">
+        <div className="relative max-w-400 mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 text-center">
           <motion.div
             initial={{ opacity: 0, y: -16 }}
             animate={{ opacity: 1, y: 0 }}
@@ -265,7 +184,7 @@ export function AIToolsPage() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Tìm kiếm công cụ AI..."
-              className="pl-10 h-12 rounded-xl border-border/60 bg-card shadow-sm text-base focus-visible:ring-blue-500/30"
+              className="pl-10 h-12 rounded-xl border-border/60 bg-card shadow-sm text-base focus-visible:ring-cyan-500/30"
             />
             <AnimatePresence>
               {search && (
@@ -297,7 +216,7 @@ export function AIToolsPage() {
                   className={cn(
                     "relative shrink-0 px-4 py-1.5 rounded-full text-sm font-medium transition-colors border",
                     activeCategory === cat.id
-                      ? "border-blue-600 text-white"
+                      ? "border-cyan-500 text-black"
                       : "border-border/60 text-muted-foreground hover:text-foreground hover:border-border bg-card",
                   )}
                   whileTap={{ scale: 0.95 }}
@@ -305,7 +224,7 @@ export function AIToolsPage() {
                   {activeCategory === cat.id && (
                     <motion.div
                       layoutId="category-bg"
-                      className="absolute inset-0 rounded-full bg-blue-600"
+                      className="absolute inset-0 rounded-full bg-cyan-500"
                       transition={{
                         type: "spring",
                         bounce: 0.2,
@@ -318,6 +237,40 @@ export function AIToolsPage() {
               ))}
             </div>
           </LayoutGroup>
+
+          {allTags.length > 0 && (
+            <LayoutGroup id="tags">
+              <div className="flex items-center gap-2 pb-3 overflow-x-auto scrollbar-none mt-2">
+                <motion.button
+                  onClick={() => setActiveTag(null)}
+                  className={cn(
+                    "relative shrink-0 px-3 py-1 rounded-md text-xs transition-colors border",
+                    !activeTag
+                      ? "border-cyan-500/50 bg-cyan-500/10 text-cyan-500 font-medium"
+                      : "border-border/40 text-muted-foreground hover:text-foreground hover:border-border/80 bg-card",
+                  )}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  Tất cả Tags
+                </motion.button>
+                {allTags.map((tag) => (
+                  <motion.button
+                    key={tag}
+                    onClick={() => setActiveTag(tag)}
+                    className={cn(
+                      "relative shrink-0 px-3 py-1 rounded-md text-xs transition-colors border",
+                      activeTag === tag
+                        ? "border-cyan-500/50 bg-cyan-500/10 text-cyan-500 font-medium"
+                        : "border-border/40 text-muted-foreground hover:text-foreground hover:border-border/80 bg-card",
+                    )}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    {tag}
+                  </motion.button>
+                ))}
+              </div>
+            </LayoutGroup>
+          )}
         </div>
       </div>
 
@@ -366,15 +319,24 @@ export function AIToolsPage() {
                 </p>
               </motion.div>
               <motion.div
-                className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4"
+                className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"
                 variants={stagger}
                 initial="hidden"
                 animate="show"
               >
                 {filtered.map((tool) => (
-                  <ToolCard key={tool.id} tool={tool} />
+                  <AIToolCard key={tool.id} tool={tool} />
                 ))}
               </motion.div>
+
+              <div
+                ref={observerRef}
+                className="w-full flex justify-center py-8 mt-4"
+              >
+                {toolsQuery.isFetchingNextPage && (
+                  <div className="w-6 h-6 border-2 border-cyan-500 border-t-transparent rounded-full animate-spin" />
+                )}
+              </div>
             </motion.div>
           )}
         </AnimatePresence>

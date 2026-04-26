@@ -2,11 +2,10 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import {
   ShoppingCart,
   Trash2,
-  Plus,
-  Minus,
   Tag,
   ArrowRight,
   Package,
@@ -14,72 +13,47 @@ import {
   Shield,
   Zap,
   RefreshCw,
+  ArrowLeft,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { MOCK_CART_ITEMS, type CartItem } from "@/lib/shop-data";
+import {
+  useMyCart,
+  useRemoveFromCart,
+  useClearCart,
+} from "@/features/carts/hooks/use-carts";
+import { CartItemResponse } from "@/features/carts/types";
 
-function fmt(n: number) {
+function fmt(n: number | undefined) {
+  if (n === undefined) return "0đ";
   return n.toLocaleString("vi-VN") + "đ";
 }
 
-function DurationToggle({
-  value,
-  onChange,
-}: {
-  value: string;
-  onChange: (v: string) => void;
-}) {
-  return (
-    <div className="flex rounded-lg border border-border/60 overflow-hidden text-xs">
-      {["1 tháng", "1 năm"].map((opt) => (
-        <button
-          key={opt}
-          onClick={() => onChange(opt)}
-          className={cn(
-            "px-2.5 py-1 font-medium transition-colors",
-            value === opt
-              ? "bg-blue-600 text-white"
-              : "text-muted-foreground hover:text-foreground hover:bg-accent",
-          )}
-        >
-          {opt}
-          {opt === "1 năm" && (
-            <span className="ml-1 text-[9px] bg-green-500/20 text-green-400 px-1 py-0.5 rounded">
-              -20%
-            </span>
-          )}
-        </button>
-      ))}
-    </div>
-  );
-}
+function CartItemRow({ item }: { item: CartItemResponse }) {
+  const removeMutation = useRemoveFromCart();
 
-function CartItemRow({
-  item,
-  onRemove,
-  onDurationChange,
-}: {
-  item: CartItem;
-  onRemove: (id: string) => void;
-  onDurationChange: (id: string, d: string) => void;
-}) {
   return (
-    <div className="flex gap-4 py-5 animate-fade-in group">
+    <div
+      className={cn(
+        "flex gap-4 py-5 animate-fade-in group",
+        removeMutation.isPending && "opacity-50 pointer-events-none",
+      )}
+    >
       {/* Thumbnail */}
       <div className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-xl overflow-hidden shrink-0 border border-border/50">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={item.image}
+        <Image
+          src={item.thumbnailUrl || "https://via.placeholder.com/150"}
           alt={item.name}
+          width={96}
+          height={96}
           className="w-full h-full object-cover"
         />
-        {item.type === "tool" && item.icon && (
+        {item.itemType === "AITOOL" && (
           <div className="absolute top-1 left-1 w-6 h-6 rounded-md bg-background/80 backdrop-blur-sm flex items-center justify-center text-sm">
-            {item.icon}
+            🤖
           </div>
         )}
       </div>
@@ -89,36 +63,35 @@ function CartItemRow({
         <div className="flex items-start justify-between gap-2">
           <div>
             <Badge variant="secondary" className="text-[10px] mb-1 h-4">
-              {item.type === "tool" ? "🤖 Công cụ AI" : "📚 Khóa học"}
+              {item.itemType === "AITOOL"
+                ? "🤖 Công cụ AI"
+                : item.itemType === "PROMPT"
+                  ? "✍️ Prompt"
+                  : "📚 Khóa học"}
             </Badge>
             <h3 className="font-semibold text-sm leading-snug text-foreground line-clamp-2">
               {item.name}
             </h3>
           </div>
           <button
-            onClick={() => onRemove(item.id)}
-            className="shrink-0 text-muted-foreground hover:text-destructive transition-colors p-1"
+            className="shrink-0 text-muted-foreground hover:text-destructive transition-colors p-1 disabled:opacity-50"
             aria-label="Remove item"
+            disabled={removeMutation.isPending}
+            onClick={() => removeMutation.mutate(item.itemId)}
           >
             <Trash2 className="w-4 h-4" />
           </button>
         </div>
 
         <div className="flex items-center flex-wrap gap-3 mt-2">
-          {/* Duration toggle for tools */}
-          {item.type === "tool" && item.duration && (
-            <DurationToggle
-              value={item.duration}
-              onChange={(d) => onDurationChange(item.id, d)}
-            />
-          )}
-
           {/* Price */}
           <div className="flex items-center gap-2 ml-auto">
-            <span className="text-xs text-muted-foreground line-through">
-              {fmt(item.originalPrice)}
-            </span>
-            <span className="font-bold text-blue-400">{fmt(item.price)}</span>
+            {item.oldPrice && (
+              <span className="text-xs text-muted-foreground line-through">
+                {fmt(item.oldPrice)}
+              </span>
+            )}
+            <span className="font-bold text-cyan-400">{fmt(item.price)}</span>
           </div>
         </div>
       </div>
@@ -127,37 +100,23 @@ function CartItemRow({
 }
 
 export function CartPage() {
-  const [items, setItems] = useState<CartItem[]>(MOCK_CART_ITEMS);
+  const cartQuery = useMyCart();
+  const clearCartMutation = useClearCart();
+
+  const items = cartQuery.data?.items || [];
+  const subtotal = cartQuery.data?.totalAmount || 0;
+
   const [coupon, setCoupon] = useState("");
   const [couponApplied, setCouponApplied] = useState(false);
   const [couponError, setCouponError] = useState("");
 
-  const subtotal = items.reduce((s, i) => s + i.price * i.quantity, 0);
   const discount = couponApplied ? Math.round(subtotal * 0.1) : 0;
   const total = subtotal - discount;
 
-  const totalSaved =
-    items.reduce((s, i) => s + (i.originalPrice - i.price) * i.quantity, 0) +
-    discount;
-
-  const remove = (id: string) =>
-    setItems((prev) => prev.filter((i) => i.id !== id));
-
-  const changeDuration = (id: string, dur: string) => {
-    setItems((prev) =>
-      prev.map((i) => {
-        if (i.id !== id) return i;
-        const yearMultiplier = dur === "1 năm" ? 10 : 1;
-        const basePrice =
-          dur === "1 năm"
-            ? Math.round(
-                MOCK_CART_ITEMS.find((x) => x.id === id)!.price * 10 * 0.8,
-              )
-            : MOCK_CART_ITEMS.find((x) => x.id === id)!.price;
-        return { ...i, duration: dur, price: basePrice };
-      }),
-    );
-  };
+  const totalOldPrice = items.reduce((acc: number, item: CartItemResponse) => {
+    return acc + (item.oldPrice || item.price) * (item.quantity || 1);
+  }, 0);
+  const totalSaved = discount + (totalOldPrice - subtotal);
 
   const applyCoupon = () => {
     if (coupon.toUpperCase() === "VIDEOPROMPT10") {
@@ -181,7 +140,7 @@ export function CartPage() {
             <ChevronRight className="w-3.5 h-3.5" />
             <span className="text-foreground font-medium">Giỏ hàng</span>
             {items.length > 0 && (
-              <Badge className="ml-1 h-5 text-[11px] bg-blue-600">
+              <Badge className="ml-1 h-5 text-[11px] bg-cyan-500">
                 {items.length}
               </Badge>
             )}
@@ -200,8 +159,8 @@ export function CartPage() {
             <p className="text-muted-foreground mb-8 max-w-sm mx-auto">
               Bạn chưa thêm gì vào giỏ. Khám phá các công cụ AI và khóa học nào!
             </p>
-            <Button asChild className="bg-blue-600 hover:bg-blue-700 gap-2">
-              <Link href="/ai-tools">
+            <Button asChild className="bg-cyan-500 hover:bg-cyan-600 gap-2">
+              <Link href="/cong-cu-ai">
                 <Package className="w-4 h-4" />
                 Khám phá ngay
               </Link>
@@ -219,8 +178,9 @@ export function CartPage() {
                   </span>
                 </h1>
                 <button
-                  onClick={() => setItems([])}
-                  className="text-xs text-muted-foreground hover:text-destructive transition-colors flex items-center gap-1"
+                  onClick={() => clearCartMutation.mutate()}
+                  disabled={clearCartMutation.isPending}
+                  className="text-xs text-muted-foreground hover:text-destructive transition-colors flex items-center gap-1 disabled:opacity-50"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
                   Xóa tất cả
@@ -228,13 +188,9 @@ export function CartPage() {
               </div>
 
               <div className="rounded-2xl border border-border/60 bg-card divide-y divide-border/50">
-                {items.map((item) => (
+                {items.map((item: CartItemResponse) => (
                   <div key={item.id} className="px-5">
-                    <CartItemRow
-                      item={item}
-                      onRemove={remove}
-                      onDurationChange={changeDuration}
-                    />
+                    <CartItemRow item={item} />
                   </div>
                 ))}
               </div>
@@ -289,7 +245,7 @@ export function CartPage() {
                     key={label}
                     className="rounded-xl border border-border/50 bg-card/60 p-3 text-center"
                   >
-                    <Icon className="w-5 h-5 text-blue-400 mx-auto mb-1" />
+                    <Icon className="w-5 h-5 text-cyan-400 mx-auto mb-1" />
                     <p className="text-xs font-semibold">{label}</p>
                     <p className="text-[11px] text-muted-foreground">{desc}</p>
                   </div>
@@ -304,17 +260,15 @@ export function CartPage() {
 
                 {/* Line items */}
                 <div className="space-y-2 mb-4">
-                  {items.map((item) => (
+                  {items.map((item: CartItemResponse) => (
                     <div key={item.id} className="flex justify-between text-sm">
                       <span className="text-muted-foreground line-clamp-1 flex-1 mr-2">
-                        {item.icon && `${item.icon} `}
+                        {item.itemType === "AITOOL"
+                          ? "🤖 "
+                          : item.itemType === "PROMPT"
+                            ? "✍️ "
+                            : "📚 "}
                         {item.name}
-                        {item.duration && (
-                          <span className="text-xs text-muted-foreground/60">
-                            {" "}
-                            ({item.duration})
-                          </span>
-                        )}
                       </span>
                       <span className="font-medium shrink-0">
                         {fmt(item.price)}
@@ -347,7 +301,7 @@ export function CartPage() {
                 <div className="flex justify-between items-center mb-6">
                   <span className="font-bold text-lg">Tổng cộng</span>
                   <div className="text-right">
-                    <p className="font-extrabold text-2xl text-blue-400">
+                    <p className="font-extrabold text-2xl text-cyan-400">
                       {fmt(total)}
                     </p>
                     <p className="text-xs text-muted-foreground">
@@ -358,19 +312,20 @@ export function CartPage() {
 
                 <Button
                   asChild
-                  className="w-full h-12 bg-linear-to-r from-blue-600 to-violet-600 hover:from-blue-500 hover:to-violet-500 text-white font-bold gap-2 text-base shadow-lg shadow-blue-500/25 border-0"
+                  className="w-full h-12 bg-linear-to-r from-cyan-600 to-cyan-700 hover:from-cyan-500 hover:to-cyan-600 text-white font-bold gap-2 text-base shadow-lg shadow-cyan-500/25 border-0"
                 >
-                  <Link href="/checkout">
+                  <Link href="/thanh-toan">
                     Tiến hành thanh toán
                     <ArrowRight className="w-5 h-5" />
                   </Link>
                 </Button>
 
                 <Link
-                  href="/ai-tools"
-                  className="block text-center text-xs text-muted-foreground hover:text-foreground mt-3 transition-colors"
+                  href="/cong-cu-ai"
+                  className="flex items-center justify-center gap-2 text-sm text-muted-foreground hover:text-foreground mt-4 transition-colors"
                 >
-                  ← Tiếp tục mua sắm
+                  <ArrowLeft className="w-4 h-4" />
+                  Tiếp tục mua sắm
                 </Link>
               </div>
             </div>

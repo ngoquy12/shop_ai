@@ -1,12 +1,20 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Eye, EyeOff, Loader2, AlertCircle, CheckCircle2 } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Separator } from "@/components/ui/separator"
-import { cn } from "@/lib/utils"
+import { useState } from "react";
+import Link from "next/link";
+import {
+  Eye,
+  EyeOff,
+  Loader2,
+  AlertCircle,
+  CheckCircle2,
+  ChevronLeft,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
+import { cn } from "@/lib/utils";
 
 // ─── Google Icon ──────────────────────────────────────────────
 export function GoogleIcon({ className }: { className?: string }) {
@@ -34,39 +42,39 @@ export function GoogleIcon({ className }: { className?: string }) {
         fill="#EA4335"
       />
     </svg>
-  )
+  );
 }
 
-// ─── Facebook Icon ──────────────────────────────────────────────
-export function FacebookIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      className={className}
-      viewBox="0 0 24 24"
-      aria-hidden="true"
-      xmlns="http://www.w3.org/2000/svg"
-      fill="#1877F2"
-    >
-      <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
-    </svg>
-  )
-}
+// ─── Facebook Icon removed ──────────────────────────────────────────────
 
 // ─── Auth wrapper layout ──────────────────────────────────────
 interface AuthCardProps {
-  children: React.ReactNode
-  title: string
-  subtitle?: string
-  illustrationSlot?: React.ReactNode
+  children: React.ReactNode;
+  title: string;
+  subtitle?: string;
+  illustrationSlot?: React.ReactNode;
 }
 
-export function AuthCard({ children, title, subtitle, illustrationSlot }: AuthCardProps) {
+export function AuthCard({
+  children,
+  title,
+  subtitle,
+  illustrationSlot,
+}: AuthCardProps) {
   return (
     <div className="flex-1 flex min-h-screen">
       {/* Left: Form */}
-      <div className="flex-1 flex flex-col items-center justify-center px-6 py-24 sm:px-12 lg:px-16 relative">
-        {/* Glow */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[500px] h-[300px] bg-blue-500/8 dark:bg-blue-500/5 rounded-full blur-3xl pointer-events-none" />
+      <div className="flex-1 flex flex-col items-center justify-center px-6 sm:px-12 lg:px-16 relative">
+        {/* Back Button */}
+        <div className="absolute top-8 left-8 sm:left-12">
+          <Link
+            href="/"
+            className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-all group font-medium bg-muted/40 px-3.5 py-2 rounded-full border border-border/50"
+          >
+            <ChevronLeft className="w-3.5 h-3.5 group-hover:-translate-x-1 transition-transform" />
+            Quay lại trang chủ
+          </Link>
+        </div>
 
         <div className="relative w-full max-w-md">
           <div className="text-center mb-8">
@@ -74,7 +82,9 @@ export function AuthCard({ children, title, subtitle, illustrationSlot }: AuthCa
               {title}
             </h1>
             {subtitle && (
-              <p className="text-sm text-muted-foreground">{subtitle}</p>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                {subtitle}
+              </p>
             )}
           </div>
           {children}
@@ -88,23 +98,27 @@ export function AuthCard({ children, title, subtitle, illustrationSlot }: AuthCa
         </div>
       )}
     </div>
-  )
+  );
 }
 
 // ─── Social Buttons ──────────────────────────────────────────
 interface SocialButtonsProps {
-  loading?: string | null
-  onGoogle?: () => void
-  onFacebook?: () => void
+  loading?: string | null;
+  onGoogle?: () => void;
+  googleLabel?: string;
 }
 
-export function SocialButtons({ loading, onGoogle, onFacebook }: SocialButtonsProps) {
+export function SocialButtons({
+  loading,
+  onGoogle,
+  googleLabel = "Tiếp tục với Google",
+}: SocialButtonsProps) {
   return (
-    <div className="grid grid-cols-2 gap-3">
+    <div className="grid grid-cols-1 gap-3">
       <Button
         id="btn-google-auth"
         variant="outline"
-        className="h-11 gap-2.5 border-border/60 hover:bg-accent font-medium"
+        className="h-11 gap-2.5 border-border/60 hover:bg-accent font-medium w-full"
         onClick={onGoogle}
         disabled={!!loading}
         type="button"
@@ -114,25 +128,10 @@ export function SocialButtons({ loading, onGoogle, onFacebook }: SocialButtonsPr
         ) : (
           <GoogleIcon className="w-5 h-5" />
         )}
-        Google
-      </Button>
-      <Button
-        id="btn-facebook-auth"
-        variant="outline"
-        className="h-11 gap-2.5 border-border/60 hover:bg-accent font-medium"
-        onClick={onFacebook}
-        disabled={!!loading}
-        type="button"
-      >
-        {loading === "facebook" ? (
-          <Loader2 className="w-4 h-4 animate-spin" />
-        ) : (
-          <FacebookIcon className="w-5 h-5" />
-        )}
-        Facebook
+        {googleLabel}
       </Button>
     </div>
-  )
+  );
 }
 
 // ─── Divider ──────────────────────────────────────────────────
@@ -144,18 +143,25 @@ export function AuthDivider() {
         hoặc tiếp tục với
       </span>
     </div>
-  )
+  );
 }
 
 // ─── Password Input ───────────────────────────────────────────
 interface PasswordInputProps extends React.ComponentProps<"input"> {
-  id: string
-  label: string
-  error?: string
+  id: string;
+  label: string;
+  error?: string;
 }
 
-export function PasswordInput({ id, label, error, className, ...props }: PasswordInputProps) {
-  const [show, setShow] = useState(false)
+export function PasswordInput({
+  id,
+  label,
+  error,
+  className,
+  ...props
+}: PasswordInputProps) {
+  const [show, setShow] = useState(false);
+  const { size: _size, ...rest } = props;
   return (
     <div className="space-y-1.5">
       <Label htmlFor={id}>{label}</Label>
@@ -166,9 +172,9 @@ export function PasswordInput({ id, label, error, className, ...props }: Passwor
           className={cn(
             "h-11 pr-10",
             error && "border-destructive focus-visible:ring-destructive/30",
-            className
+            className,
           )}
-          {...props}
+          {...rest}
         />
         <button
           type="button"
@@ -187,35 +193,38 @@ export function PasswordInput({ id, label, error, className, ...props }: Passwor
         </p>
       )}
     </div>
-  )
+  );
 }
 
 // ─── Password Strength ────────────────────────────────────────
 export function PasswordStrength({ password }: { password: string }) {
   const checks = [
     { label: "Ít nhất 8 ký tự", ok: password.length >= 8 },
-    { label: "Chữ hoa và thường", ok: /[a-z]/.test(password) && /[A-Z]/.test(password) },
+    {
+      label: "Chữ hoa và thường",
+      ok: /[a-z]/.test(password) && /[A-Z]/.test(password),
+    },
     { label: "Có số", ok: /\d/.test(password) },
     { label: "Ký tự đặc biệt", ok: /[^a-zA-Z0-9]/.test(password) },
-  ]
-  const score = checks.filter((c) => c.ok).length
-  const strengthLabel = ["", "Yếu", "Trung bình", "Tốt", "Mạnh"][score] ?? ""
+  ];
+  const score = checks.filter((c) => c.ok).length;
+  const strengthLabel = ["", "Yếu", "Trung bình", "Tốt", "Mạnh"][score] ?? "";
   const strengthColor = [
     "",
     "text-red-500",
     "text-yellow-500",
     "text-blue-500",
     "text-green-500",
-  ][score]
+  ][score];
   const barColor = [
     "bg-muted",
     "bg-red-500",
     "bg-yellow-500",
     "bg-blue-500",
     "bg-green-500",
-  ]
+  ];
 
-  if (!password) return null
+  if (!password) return null;
 
   return (
     <div className="space-y-2 pt-1">
@@ -226,7 +235,7 @@ export function PasswordStrength({ password }: { password: string }) {
             key={i}
             className={cn(
               "flex-1 rounded-full transition-colors duration-300",
-              i <= score ? barColor[score] : "bg-muted"
+              i <= score ? barColor[score] : "bg-muted",
             )}
           />
         ))}
@@ -242,45 +251,53 @@ export function PasswordStrength({ password }: { password: string }) {
             <CheckCircle2
               className={cn(
                 "w-3.5 h-3.5 transition-colors",
-                c.ok ? "text-green-500" : "text-muted-foreground/40"
+                c.ok ? "text-green-500" : "text-muted-foreground/40",
               )}
             />
-            <span className={c.ok ? "text-foreground" : "text-muted-foreground"}>
+            <span
+              className={c.ok ? "text-foreground" : "text-muted-foreground"}
+            >
               {c.label}
             </span>
           </li>
         ))}
       </ul>
     </div>
-  )
+  );
 }
 
 // ─── Alert Box ────────────────────────────────────────────────
 interface AlertBoxProps {
-  type: "error" | "success" | "info"
-  message: string
+  type: "error" | "success" | "info";
+  message: string;
 }
 
 export function AlertBox({ type, message }: AlertBoxProps) {
   const styles = {
     error: "bg-red-500/10 border-red-500/20 text-red-600 dark:text-red-400",
-    success: "bg-green-500/10 border-green-500/20 text-green-600 dark:text-green-400",
+    success:
+      "bg-green-500/10 border-green-500/20 text-green-600 dark:text-green-400",
     info: "bg-blue-500/10 border-blue-500/20 text-blue-600 dark:text-blue-400",
-  }
-  const Icon = type === "success" ? CheckCircle2 : AlertCircle
+  };
+  const Icon = type === "success" ? CheckCircle2 : AlertCircle;
   return (
-    <div className={cn("flex items-start gap-2.5 rounded-xl border px-4 py-3 text-sm", styles[type])}>
+    <div
+      className={cn(
+        "flex items-start gap-2.5 rounded-xl border px-4 py-3 text-sm",
+        styles[type],
+      )}
+    >
       <Icon className="w-4 h-4 mt-0.5 shrink-0" />
       <span>{message}</span>
     </div>
-  )
+  );
 }
 
 // ─── Illustration Panel ───────────────────────────────────────
 interface IllustrationProps {
-  emoji: string
-  title: string
-  points: string[]
+  emoji: string;
+  title: string;
+  points: string[];
 }
 
 export function AuthIllustration({ emoji, title, points }: IllustrationProps) {
@@ -295,7 +312,10 @@ export function AuthIllustration({ emoji, title, points }: IllustrationProps) {
         <h2 className="text-2xl font-extrabold mb-4 leading-tight">{title}</h2>
         <ul className="space-y-3">
           {points.map((p) => (
-            <li key={p} className="flex items-center gap-2.5 text-sm text-white/80">
+            <li
+              key={p}
+              className="flex items-center gap-2.5 text-sm text-white/80"
+            >
               <CheckCircle2 className="w-4 h-4 text-white/60 shrink-0" />
               {p}
             </li>
@@ -303,5 +323,5 @@ export function AuthIllustration({ emoji, title, points }: IllustrationProps) {
         </ul>
       </div>
     </div>
-  )
+  );
 }

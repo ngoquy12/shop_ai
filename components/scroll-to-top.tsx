@@ -1,6 +1,11 @@
 "use client";
 
-import { motion, AnimatePresence, useScroll, useMotionValueEvent } from "framer-motion";
+import {
+  motion,
+  AnimatePresence,
+  useScroll,
+  useMotionValueEvent,
+} from "framer-motion";
 import { ArrowUp } from "lucide-react";
 import { useState } from "react";
 
@@ -23,7 +28,7 @@ export function ScrollToTop() {
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.9 }}
           onClick={scrollTop}
-          className="fixed bottom-6 right-6 z-50 w-11 h-11 rounded-full bg-linear-to-br from-blue-600 to-violet-600 text-white flex items-center justify-center shadow-lg shadow-violet-500/30 border border-white/10"
+          className="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full bg-linear-to-br from-blue-600 to-violet-600 text-white flex items-center justify-center shadow-lg shadow-violet-500/30 border border-white/10"
           aria-label="Cuộn lên đầu trang"
         >
           <ArrowUp className="w-5 h-5" />

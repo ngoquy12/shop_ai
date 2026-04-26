@@ -1,51 +1,52 @@
 export type Category = {
-  id: string
-  label: string
-}
+  id: string;
+  label: string;
+};
 
 export type AITool = {
-  id: string
-  name: string
-  category: string
-  description: string
-  tags: string[]
-  originalPrice: number
-  salePrice: number
-  discount: number
-  hot?: boolean
-  icon: string
-  bgColor: string
-  soldCount?: number
-  externalUrl?: string
-}
+  id: string;
+  name: string;
+  category: string;
+  description: string;
+  tags: string[];
+  originalPrice: number;
+  salePrice: number;
+  discount: number;
+  hot?: boolean;
+  icon: string;
+  logo?: string;
+  bgColor: string;
+  soldCount?: number;
+  externalUrl?: string;
+};
 
 export type WebsiteService = {
-  id: string
-  name: string
-  description: string
-  features: string[]
-  price: string
-  badge?: string
-  icon: string
-  popular?: boolean
-}
+  id: string;
+  name: string;
+  description: string;
+  features: string[];
+  price: string;
+  badge?: string;
+  icon: string;
+  popular?: boolean;
+};
 
 export type Course = {
-  id: string
-  name: string
-  description: string
-  lessons: number
-  duration: string
-  level: "Cơ bản" | "Trung cấp" | "Nâng cao"
-  price: number
-  originalPrice: number
-  icon: string
-  tags: string[]
-  rating: number
-  students: number
-  new?: boolean
-  bestseller?: boolean
-}
+  id: string;
+  name: string;
+  description: string;
+  lessons: number;
+  duration: string;
+  level: "Cơ bản" | "Trung cấp" | "Nâng cao";
+  price: number;
+  originalPrice: number;
+  icon: string;
+  tags: string[];
+  rating: number;
+  students: number;
+  new?: boolean;
+  bestseller?: boolean;
+};
 
 export const aiToolCategories: Category[] = [
   { id: "all", label: "Tất cả" },
@@ -57,7 +58,7 @@ export const aiToolCategories: Category[] = [
   { id: "plus", label: "Plus" },
   { id: "ai-video", label: "AI video" },
   { id: "ai-analyze", label: "Video, hình ảnh, phân tích" },
-]
+];
 
 export const aiTools: AITool[] = [
   {
@@ -66,13 +67,18 @@ export const aiTools: AITool[] = [
     category: "video",
     description:
       "Đây là trang tổng hợp có sẵn credit để sử dụng VEO3, Sora2, Grok.. chứ không phải vào trực tiếp VEO3, Sora2, Grok..để sử dụng. Tài khoản chia sẻ đồng thời nhiều người.",
-    tags: ["Tạo ảnh", "Tạo video đủ các loại VEO3, Sora2, Grok..", "Có chatGPT5"],
+    tags: [
+      "Tạo ảnh",
+      "Tạo video đủ các loại VEO3, Sora2, Grok..",
+      "Có chatGPT5",
+    ],
     originalPrice: 300000,
     salePrice: 250000,
     discount: 17,
     hot: true,
     icon: "P",
-    bgColor: "#E91E8C",
+    logo: "https://logo.clearbit.com/picsart.com",
+    bgColor: "#ffffff",
     soldCount: 24,
     externalUrl: "https://picsart.com",
   },
@@ -88,7 +94,8 @@ export const aiTools: AITool[] = [
     discount: 30,
     hot: true,
     icon: "S",
-    bgColor: "#10a37f",
+    logo: "https://upload.wikimedia.org/wikipedia/commons/0/04/ChatGPT_logo.svg",
+    bgColor: "#ffffff",
     soldCount: 18,
     externalUrl: "https://sora.com",
   },
@@ -98,12 +105,17 @@ export const aiTools: AITool[] = [
     category: "ai-analyze",
     description:
       "-Dùng Veo3 ultra gmail chính chủ, dùng Antigravity, Gemini ultra, Lm Book, có 30tb bộ nhớ, Wish. -Dùng Ổn định hàng tháng, thích hợp cho dùng lâu dài.",
-    tags: ["Tạo ảnh chất lượng cao", "Tạo video chất lượng cao", "Phân tích chuyên nghiệp"],
+    tags: [
+      "Tạo ảnh chất lượng cao",
+      "Tạo video chất lượng cao",
+      "Phân tích chuyên nghiệp",
+    ],
     originalPrice: 3000000,
     salePrice: 400000,
     discount: 87,
     icon: "V",
-    bgColor: "#4285F4",
+    logo: "https://logo.clearbit.com/google.com",
+    bgColor: "#ffffff",
     soldCount: 16,
     externalUrl: "https://labs.google",
   },
@@ -113,12 +125,17 @@ export const aiTools: AITool[] = [
     category: "ai-analyze",
     description:
       "Dùng full tính năng trên. mỗi tháng có 6k credit dùng Veo3 ultra. Dùng Flow Veo3 ultra model Model 3.1 Lower. k tốn credit",
-    tags: ["Tạo ảnh chất lượng cao", "Tạo video chất lượng cao", "Phân tích chuyên nghiệp"],
+    tags: [
+      "Tạo ảnh chất lượng cao",
+      "Tạo video chất lượng cao",
+      "Phân tích chuyên nghiệp",
+    ],
     originalPrice: 3000000,
     salePrice: 500000,
     discount: 83,
     icon: "V",
-    bgColor: "#4285F4",
+    logo: "https://logo.clearbit.com/google.com",
+    bgColor: "#ffffff",
     soldCount: 9,
     externalUrl: "https://labs.google",
   },
@@ -133,7 +150,8 @@ export const aiTools: AITool[] = [
     salePrice: 220000,
     discount: 73,
     icon: "G",
-    bgColor: "#4285F4",
+    logo: "https://upload.wikimedia.org/wikipedia/commons/8/8a/Google_Gemini_logo.svg",
+    bgColor: "#ffffff",
     soldCount: 31,
     externalUrl: "https://gemini.google.com",
   },
@@ -148,7 +166,8 @@ export const aiTools: AITool[] = [
     salePrice: 350000,
     discount: 71,
     icon: "L",
-    bgColor: "#6C47FF",
+    logo: "https://logo.clearbit.com/lumalabs.ai",
+    bgColor: "#000000",
     soldCount: 12,
     externalUrl: "https://lumalabs.ai",
   },
@@ -164,7 +183,8 @@ export const aiTools: AITool[] = [
     discount: 70,
     hot: true,
     icon: "M",
-    bgColor: "#000000",
+    logo: "https://upload.wikimedia.org/wikipedia/commons/e/e6/Midjourney_Emblem.png",
+    bgColor: "#ffffff",
     soldCount: 45,
     externalUrl: "https://midjourney.com",
   },
@@ -179,7 +199,8 @@ export const aiTools: AITool[] = [
     salePrice: 280000,
     discount: 69,
     icon: "C",
-    bgColor: "#CC785C",
+    logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/18/Claude_ai_Logo.svg/2048px-Claude_ai_Logo.svg.png",
+    bgColor: "#D5D3CB",
     soldCount: 22,
     externalUrl: "https://claude.ai",
   },
@@ -194,7 +215,8 @@ export const aiTools: AITool[] = [
     salePrice: 380000,
     discount: 65,
     icon: "R",
-    bgColor: "#FF4D4D",
+    logo: "https://logo.clearbit.com/runwayml.com",
+    bgColor: "#000000",
     soldCount: 8,
     externalUrl: "https://runwayml.com",
   },
@@ -209,7 +231,8 @@ export const aiTools: AITool[] = [
     salePrice: 230000,
     discount: 67,
     icon: "E",
-    bgColor: "#FF6B35",
+    logo: "https://logo.clearbit.com/elevenlabs.io",
+    bgColor: "#ffffff",
     soldCount: 19,
     externalUrl: "https://elevenlabs.io",
   },
@@ -224,7 +247,8 @@ export const aiTools: AITool[] = [
     salePrice: 180000,
     discount: 70,
     icon: "P",
-    bgColor: "#20B2AA",
+    logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/23/Perplexity_AI_logo.svg/512px-Perplexity_AI_logo.svg.png",
+    bgColor: "#ffffff",
     soldCount: 14,
     externalUrl: "https://perplexity.ai",
   },
@@ -240,11 +264,12 @@ export const aiTools: AITool[] = [
     discount: 68,
     hot: true,
     icon: "A",
-    bgColor: "#FF0000",
+    logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/cb/Adobe_Firefly_Icon.svg/1024px-Adobe_Firefly_Icon.svg.png",
+    bgColor: "#200E32",
     soldCount: 27,
     externalUrl: "https://firefly.adobe.com",
   },
-]
+];
 
 export const websiteServices: WebsiteService[] = [
   {
@@ -342,7 +367,7 @@ export const websiteServices: WebsiteService[] = [
     badge: "AI",
     icon: "🤖",
   },
-]
+];
 
 export const courses: Course[] = [
   {
@@ -426,7 +451,7 @@ export const courses: Course[] = [
   },
   {
     id: "c-6",
-    name: "Kiếm Tiền Với AI Tools",
+    name: "Kiếm Tiền Với Công cụ AI",
     description:
       "Hướng dẫn xây dựng nguồn thu nhập thụ động với AI. Freelance AI, bán prompt, tạo sản phẩm số và automation.",
     lessons: 38,
@@ -440,4 +465,112 @@ export const courses: Course[] = [
     students: 1890,
     bestseller: true,
   },
-]
+];
+
+export const chatbots = [
+  {
+    id: "cb1",
+    name: "Chatbot nhân hoá làm affiliate dưỡng sinh đông y",
+    desc: "Tạo video hoạt hình 3D dưỡng sinh đông y. Phù hợp cho youtube, tiktok, page.",
+    price: 169000,
+    old: 210000,
+    disc: 20,
+    sold: 124,
+    img: "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=400",
+    hot: true,
+    categoryId: "video",
+    createdAt: "2024-03-01",
+  },
+  {
+    id: "cb2",
+    name: "Chatbot kinh nghiệm xe hơi - bán phụ kiện xe",
+    desc: "Sử dụng Gemini để đăng nhập và tạo câu lệnh bán hàng tinh tế.",
+    price: 200000,
+    old: 300000,
+    disc: 33,
+    sold: 88,
+    img: "https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=400",
+    hot: true,
+    categoryId: "sales",
+    createdAt: "2024-03-05",
+  },
+  {
+    id: "cb3",
+    name: "Chatbot KOC nam giấu mặt đi bộ review thời trang",
+    desc: "Tạo kịch bản video người mẫu nam giấu mặt đi bộ review cực chất.",
+    price: 0,
+    old: 150000,
+    disc: 100,
+    sold: 256,
+    img: "https://images.unsplash.com/photo-1488161628813-04466f872be2?w=400",
+    hot: false,
+    categoryId: "content",
+    createdAt: "2024-02-15",
+  },
+  {
+    id: "cb4",
+    name: "Chatbot tạo video thời trang bé gái",
+    desc: "Chatbot tạo video KOC nhí làm affiliate thời trang trẻ em hút khách.",
+    price: 149000,
+    old: 210000,
+    disc: 29,
+    sold: 312,
+    img: "https://images.unsplash.com/photo-1519238263530-99bdd11df2ea?w=400",
+    hot: true,
+    categoryId: "video",
+    createdAt: "2024-03-10",
+    video: "https://files.vidstack.io/sprite-fight/720p.mp4",
+  },
+  {
+    id: "cb5",
+    name: "AI Writer Pro - Viết blog chuẩn SEO",
+    desc: "Tạo nội dung blog hàng nghìn từ chuẩn SEO đa lĩnh vực chỉ với 1 click.",
+    price: 299000,
+    old: 450000,
+    disc: 33,
+    sold: 45,
+    img: "https://images.unsplash.com/photo-1488190211105-8b0e65b80b4e?w=400",
+    hot: false,
+    categoryId: "marketing",
+    createdAt: "2024-01-20",
+  },
+  {
+    id: "cb6",
+    name: "Dịch thuật video đa ngôn ngữ",
+    desc: "Bot hỗ trợ dịch thuật và lồng tiếng AI cho video TikTok/Shorts.",
+    price: 180000,
+    old: 250000,
+    disc: 28,
+    sold: 90,
+    img: "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=400",
+    hot: true,
+    categoryId: "video",
+    createdAt: "2024-03-02",
+  },
+  {
+    id: "cb7",
+    name: "Chatbot chốt sale bất động sản tự động",
+    desc: "Tự động tư vấn, xin thông tin và phân loại khách hàng tiềm năng dự án BĐS.",
+    price: 499000,
+    old: 800000,
+    disc: 38,
+    sold: 340,
+    img: "https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=400",
+    hot: true,
+    categoryId: "sales",
+    createdAt: "2024-03-15",
+  },
+  {
+    id: "cb8",
+    name: "Hệ thống kịch bản Livestream ngàn đơn",
+    desc: "Chatbot lên sẵn cấu trúc kịch bản và lời thoại chốt sale cực đỉnh khi live.",
+    price: 199000,
+    old: 350000,
+    disc: 43,
+    sold: 520,
+    img: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400",
+    hot: true,
+    categoryId: "marketing",
+    createdAt: "2024-03-20",
+  },
+];

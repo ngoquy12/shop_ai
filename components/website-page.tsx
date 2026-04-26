@@ -103,10 +103,10 @@ export function WebsitePage() {
     <div className="min-h-screen bg-background">
       {/* Hero */}
       <div className="relative overflow-hidden">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[700px] h-[350px] bg-blue-500/8 dark:bg-blue-500/5 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute top-10 right-1/4 w-[250px] h-[250px] bg-green-500/8 dark:bg-green-500/5 rounded-full blur-2xl pointer-events-none" />
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-175 h-87.5 bg-blue-500/8 dark:bg-blue-500/5 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute top-10 right-1/4 w-62.5 h-62.5 bg-green-500/8 dark:bg-green-500/5 rounded-full blur-2xl pointer-events-none" />
 
-        <div className="relative max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 text-center">
+        <div className="relative max-w-400 mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 text-center">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-border/60 bg-card text-sm text-muted-foreground mb-6">
             <Globe2 className="w-4 h-4 text-blue-500" />
             Dịch vụ thiết kế & phát triển web chuyên nghiệp
@@ -142,7 +142,7 @@ export function WebsitePage() {
       </div>
 
       {/* Badges */}
-      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 mb-8">
+      <div className="max-w-400 mx-auto px-4 sm:px-6 lg:px-8 mb-8">
         <div className="flex flex-wrap gap-3 justify-center">
           {[
             { icon: Sparkles, label: "Thiết kế premium" },
@@ -162,7 +162,7 @@ export function WebsitePage() {
       </div>
 
       {/* Services grid */}
-      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+      <div className="max-w-400 mx-auto px-4 sm:px-6 lg:px-8 pb-16">
         <h2 className="text-2xl font-bold mb-6 text-center">Các gói dịch vụ</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
           {websiteServices.map((service) => (

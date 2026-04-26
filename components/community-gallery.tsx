@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import {
   Heart,
   Eye,
@@ -291,7 +292,7 @@ function PromptModal({
             </AnimatePresence>
           </motion.button>
           <Button variant="outline" className="gap-2 h-11 rounded-xl" asChild>
-            <Link href="/prompt-mien-phi">
+            <Link href="/prompts-mien-phi">
               <Sparkles className="w-4 h-4" />
               Xem thêm
               <ExternalLink className="w-3 h-3" />
@@ -327,10 +328,11 @@ function GalleryCard({
           item.tall ? "h-[380px]" : "h-[175px]",
         )}
       >
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
+        <Image
           src={item.image}
           alt={item.title}
+          width={500}
+          height={item.tall ? 380 : 175}
           className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
           loading="lazy"
         />
@@ -398,7 +400,7 @@ function GalleryCard({
             <div className="flex items-center gap-2 text-white/60 text-[11px]">
               <span className="flex items-center gap-0.5">
                 <Eye className="w-3 h-3" />
-                {item.views.toLocaleString()}
+                {item.views.toLocaleString("en-US")}
               </span>
               <span className="flex items-center gap-0.5">
                 <Heart className="w-3 h-3" />

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Zap, TrendingDown, ArrowRight, Flame } from "lucide-react"
+import { Zap, TrendingDown, ArrowRight, Flame } from "lucide-react";
 import Link from "next/link";
 
 // Deal list for the scrolling ticker
@@ -70,7 +70,6 @@ function fmt(n: number) {
 
 // Flip number animation digit
 
-
 // 24h countdown from page load
 function useCountdown(targetHours = 24) {
   const [time, setTime] = useState({ h: targetHours, m: 0, s: 0 });
@@ -92,13 +91,13 @@ function useCountdown(targetHours = 24) {
 }
 
 export function FlashDealBanner() {
-  const time = useCountdown(23)
-  const [dismissed, setDismissed] = useState(false)
+  const time = useCountdown(23);
+  const [dismissed, setDismissed] = useState(false);
 
-  const pad = (n: number) => String(n).padStart(2, "0")
-  const countdownStr = `${pad(time.h)}:${pad(time.m)}:${pad(time.s)}`
+  const pad = (n: number) => String(n).padStart(2, "0");
+  const countdownStr = `${pad(time.h)}:${pad(time.m)}:${pad(time.s)}`;
 
-  if (dismissed) return null
+  if (dismissed) return null;
 
   return (
     <div className="relative z-20">
@@ -114,9 +113,13 @@ export function FlashDealBanner() {
             <span className="text-white font-bold text-sm hidden sm:block">
               ⚡ Flash Sale hôm nay
             </span>
-            <span className="text-white font-bold text-sm sm:hidden">⚡ Flash Sale</span>
+            <span className="text-white font-bold text-sm sm:hidden">
+              ⚡ Flash Sale
+            </span>
             <span className="hidden sm:inline text-white/50 text-sm">·</span>
-            <span className="text-white font-extrabold text-sm">Giảm đến 35%</span>
+            <span className="text-white font-extrabold text-sm">
+              Giảm đến 35%
+            </span>
           </div>
 
           {/* Divider on md+ */}
@@ -124,7 +127,9 @@ export function FlashDealBanner() {
 
           {/* Countdown inline */}
           <div className="flex items-center gap-1.5 shrink-0">
-            <span className="text-white/70 text-xs hidden md:block">Kết thúc sau</span>
+            <span className="text-white/70 text-xs hidden md:block">
+              Kết thúc sau
+            </span>
             <span className="font-mono font-extrabold text-sm text-white tabular-nums tracking-wider bg-black/20 px-2.5 py-0.5 rounded-lg">
               {countdownStr}
             </span>
@@ -135,7 +140,7 @@ export function FlashDealBanner() {
 
           {/* CTA */}
           <Link
-            href="/ai-tools"
+            href="/cong-cu-ai"
             className="hidden sm:inline-flex items-center gap-1.5 shrink-0 text-xs font-bold text-white bg-white/15 hover:bg-white/25 border border-white/25 px-3 py-1.5 rounded-lg transition-colors"
           >
             <Flame className="w-3.5 h-3.5 text-orange-200" />
@@ -161,12 +166,19 @@ export function FlashDealBanner() {
             <div key={i} className="inline-flex items-center gap-2 px-5">
               {deal.hot && (
                 <span className="inline-flex items-center gap-0.5 text-[9px] px-1.5 py-0.5 rounded-full bg-orange-500/30 text-orange-300 font-bold">
-                  <Flame className="w-2.5 h-2.5" />HOT
+                  <Flame className="w-2.5 h-2.5" />
+                  HOT
                 </span>
               )}
-              <span className="text-xs text-white/80 font-medium">{deal.tool}</span>
-              <span className="text-[11px] text-white/40 line-through">{fmt(deal.original)}</span>
-              <span className="text-[11px] text-orange-300 font-bold">{fmt(deal.sale)}</span>
+              <span className="text-xs text-white/80 font-medium">
+                {deal.tool}
+              </span>
+              <span className="text-[11px] text-white/40 line-through">
+                {fmt(deal.original)}
+              </span>
+              <span className="text-[11px] text-orange-300 font-bold">
+                {fmt(deal.sale)}
+              </span>
               <span className="inline-flex items-center gap-0.5 text-[9px] bg-red-500/20 text-red-300 px-1.5 py-0.5 rounded-full font-bold">
                 <TrendingDown className="w-2 h-2" />-{deal.discount}%
               </span>
@@ -176,5 +188,5 @@ export function FlashDealBanner() {
         </div>
       </div>
     </div>
-  )
+  );
 }

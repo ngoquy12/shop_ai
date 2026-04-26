@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
 import {
   Sparkles,
   Mail,
@@ -9,16 +8,8 @@ import {
   Facebook,
   Youtube,
   Send,
-  ArrowRight,
-  Shield,
-  Package,
-  Heart,
   ChevronRight,
-  Star,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 
 const FOOTER_LINKS: {
@@ -28,35 +19,29 @@ const FOOTER_LINKS: {
   {
     title: "Sản phẩm",
     links: [
-      { label: "AI Tools Store", href: "/ai-tools", badge: "50+" },
-      { label: "Prompt miễn phí", href: "/prompt-mien-phi", badge: "Free" },
+      { label: "Công cụ AI", href: "/cong-cu-ai", badge: "50+" },
+      { label: "Prompt miễn phí", href: "/prompts-mien-phi", badge: "Free" },
       { label: "Khóa học AI", href: "/khoa-hoc-ai" },
       { label: "Làm website", href: "/lam-website" },
-      { label: "Dịch vụ khác", href: "/services" },
+      { label: "Cộng tác viên", href: "/cong-tac-vien" },
+    ],
+  },
+  {
+    title: "Tài khoản",
+    links: [
+      { label: "Trang cá nhân", href: "/tai-khoan" },
+      { label: "Đơn hàng", href: "/don-hang" },
+      { label: "Giỏ hàng", href: "/gio-hang" },
+      { label: "Yêu thích", href: "/yeu-thich" },
+      { label: "Nâng cấp", href: "/bang-gia" },
     ],
   },
   {
     title: "Chính sách",
     links: [
-      { label: "Điều khoản sử dụng", href: "/terms" },
-      { label: "Chính sách bảo mật", href: "/privacy" },
-      { label: "Chính sách hoàn tiền", href: "/refund" },
-      { label: "Bảo hành tài khoản", href: "/warranty" },
-      { label: "Hướng dẫn mua hàng", href: "/guide" },
-    ],
-  },
-  {
-    title: "Hỗ trợ",
-    links: [
-      { label: "Câu hỏi thường gặp", href: "/faq" },
-      { label: "Liên hệ hỗ trợ", href: "/contact" },
-      { label: "Blog & Tin tức", href: "/blog" },
-      { label: "Trạng thái hệ thống", href: "/status" },
-      {
-        label: "Cộng đồng Discord",
-        href: "https://discord.gg",
-        external: true,
-      },
+      { label: "Điều khoản sử dụng", href: "/dieu-khoan" },
+      { label: "Chính sách bảo mật", href: "/chinh-sach-bao-mat" },
+      { label: "Liên hệ", href: "/lien-he" },
     ],
   },
 ];
@@ -92,46 +77,9 @@ const SOCIAL = [
   },
 ];
 
-const TRUST_BADGES = [
-  { icon: Shield, text: "Bảo mật SSL" },
-  { icon: Package, text: "Bảo hành 30 ngày" },
-  { icon: Heart, text: "Hỗ trợ 24/7" },
-  { icon: Star, text: "Đánh giá 4.9★" },
-];
-
 export function Footer() {
-  const [email, setEmail] = useState("");
-  const [subscribed, setSubscribed] = useState(false);
-
-  const handleSubscribe = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!email) return;
-    setSubscribed(true);
-    setEmail("");
-    setTimeout(() => setSubscribed(false), 4000);
-  };
-
   return (
     <footer className="border-t border-border/50 bg-card/40 mt-auto">
-      {/* ── Trust badges ──────────────────────────────── */}
-      <div className="border-b border-border/40 bg-muted/20">
-        <div className="px-4 sm:px-6 py-4">
-          <div className="flex items-center justify-center gap-6 sm:gap-10 flex-wrap">
-            {TRUST_BADGES.map(({ icon: Icon, text }) => (
-              <div
-                key={text}
-                className="flex items-center gap-2 text-sm text-muted-foreground"
-              >
-                <div className="w-7 h-7 rounded-lg bg-blue-500/10 flex items-center justify-center">
-                  <Icon className="w-3.5 h-3.5 text-blue-400" />
-                </div>
-                {text}
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
       {/* ── Main footer grid ──────────────────────────── */}
       <div className="max-w-[1600px] mx-auto px-4 sm:px-6 py-12">
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-10">
@@ -146,7 +94,7 @@ export function Footer() {
               </div>
               <div>
                 <div className="font-extrabold text-lg leading-none">
-                  VideoPrompt
+                  Shop AI
                 </div>
                 <div className="text-xs text-muted-foreground leading-none mt-0.5">
                   AI Platform
@@ -155,7 +103,7 @@ export function Footer() {
             </Link>
             <p className="text-sm text-muted-foreground leading-relaxed mb-5 max-w-xs">
               Nền tảng công cụ AI hàng đầu Việt Nam. Tài khoản AI chính chủ,
-              prompt miễn phí, website chuyên nghiệp và khóa học thực chiến.
+              prompt miễn phí, khóa học thực chiến và dịch vụ chuyên nghiệp.
             </p>
 
             {/* Social links */}
@@ -234,59 +182,6 @@ export function Footer() {
             </div>
           ))}
         </div>
-
-        {/* Newsletter */}
-        <div className="mt-10 pt-10 border-t border-border/40">
-          <div className="rounded-2xl bg-linear-to-br from-blue-600/10 via-violet-600/8 to-pink-600/5 border border-violet-500/20 p-6 sm:p-8">
-            <div className="grid sm:grid-cols-2 gap-6 items-center">
-              <div>
-                <h3 className="text-xl font-extrabold mb-2">
-                  Nhận ưu đãi độc quyền 📬
-                </h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  Đăng ký nhận thông báo Flash Sale, prompt miễn phí và tips AI
-                  hữu ích mỗi tuần.
-                  <span className="font-semibold text-foreground">
-                    {" "}
-                    Không spam, hủy bất cứ lúc nào.
-                  </span>
-                </p>
-              </div>
-              <form onSubmit={handleSubscribe} className="flex gap-2">
-                {subscribed ? (
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    className="flex-1 flex items-center gap-2 px-4 py-2.5 rounded-xl bg-green-500/15 border border-green-500/20 text-green-500 text-sm font-semibold"
-                  >
-                    ✅ Đã đăng ký thành công! Cảm ơn bạn.
-                  </motion.div>
-                ) : (
-                  <>
-                    <div className="relative flex-1">
-                      <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                      <Input
-                        type="email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        placeholder="email@của bạn.com"
-                        required
-                        className="pl-10 h-11 rounded-xl border-border/60 bg-background"
-                      />
-                    </div>
-                    <Button
-                      type="submit"
-                      className="h-11 px-5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl gap-2 shadow-md shadow-blue-500/20 shrink-0"
-                    >
-                      <span className="hidden sm:inline">Đăng ký</span>
-                      <ArrowRight className="w-4 h-4" />
-                    </Button>
-                  </>
-                )}
-              </form>
-            </div>
-          </div>
-        </div>
       </div>
 
       {/* ── Bottom bar ────────────────────────────────── */}
@@ -294,29 +189,21 @@ export function Footer() {
         <div className="max-w-[1600px] mx-auto px-4 sm:px-6 py-4">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
             <p className="text-xs text-muted-foreground text-center sm:text-left">
-              © 2026 VideoPrompt. Bảo lưu mọi quyền. Thiết kế tại 🇻🇳 Việt Nam
+              © 2026 Shop AI. Bảo lưu mọi quyền. Thiết kế tại 🇻🇳 Việt Nam
             </p>
             <div className="flex items-center gap-4">
-              {["Điều khoản", "Bảo mật", "Cookies"].map((l) => (
-                <Link
-                  key={l}
-                  href="#"
-                  className="text-xs text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  {l}
-                </Link>
-              ))}
-              {/* Payment icons */}
-              <div className="flex items-center gap-1.5">
-                {["VietQR", "MoMo", "Zalo"].map((p) => (
-                  <span
-                    key={p}
-                    className="text-[9px] font-bold px-2 py-1 rounded-md bg-muted text-muted-foreground border border-border/50"
-                  >
-                    {p}
-                  </span>
-                ))}
-              </div>
+              <Link
+                href="/dieu-khoan"
+                className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Điều khoản
+              </Link>
+              <Link
+                href="/chinh-sach-bao-mat"
+                className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Bảo mật
+              </Link>
             </div>
           </div>
         </div>

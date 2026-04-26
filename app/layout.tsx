@@ -4,7 +4,10 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { AppShell } from "@/components/app-shell";
 import { FomoToasts } from "@/components/fomo-toasts";
+import { QueryProvider } from "@/components/query-provider";
 import { ScrollToTop } from "@/components/scroll-to-top";
+import { SessionGuardianProvider } from "@/features/auth/components/session-guardian-provider";
+import { Toaster } from "sonner";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -19,14 +22,20 @@ export const metadata: Metadata = {
   description:
     "Mua tài khoản AI chính chủ giá tốt nhất: ChatGPT, Midjourney, Claude, Gemini... Học AI thực chiến, prompt miễn phí, làm website theo yêu cầu chuyên nghiệp.",
   keywords: [
-    "AI tools", "ChatGPT", "Midjourney", "Gemini",
-    "khóa học AI", "làm website", "prompt miễn phí",
+    "Công cụ AI",
+    "ChatGPT",
+    "Midjourney",
+    "Gemini",
+    "khóa học AI",
+    "làm website",
+    "prompt miễn phí",
     "mua tài khoản AI",
   ],
   metadataBase: new URL("https://videoprompt.vn"),
   openGraph: {
     title: "VideoPrompt - Nền tảng AI hàng đầu Việt Nam",
-    description: "AI tools, khóa học, prompt miễn phí và website chuyên nghiệp",
+    description:
+      "Xông cụ AI, khóa học, prompt miễn phí và website chuyên nghiệp",
     type: "website",
     locale: "vi_VN",
   },
@@ -43,13 +52,16 @@ export default function RootLayout({
         <ThemeProvider
           attribute="class"
           defaultTheme="dark"
-          enableSystem
+          forcedTheme="dark"
           disableTransitionOnChange
         >
-          <AppShell>
-            {children}
-          </AppShell>
+          <QueryProvider>
+            <SessionGuardianProvider>
+              <AppShell>{children}</AppShell>
+            </SessionGuardianProvider>
+          </QueryProvider>
           <FomoToasts />
+          <Toaster theme="dark" />
           <ScrollToTop />
         </ThemeProvider>
       </body>

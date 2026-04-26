@@ -5,23 +5,30 @@ import { Sidebar } from "./sidebar";
 import { SiteHeader } from "./site-header";
 import { Footer } from "./footer";
 import { SidebarProvider } from "./sidebar-context";
+import { ChatWidget } from "./chat-widget";
+import { useAuthStore } from "@/features/auth/store/auth.store";
 
-// Auth routes get a clean, minimal layout
-const AUTH_PREFIXES = [
-  "/login",
-  "/register",
-  "/forgot-password",
-  "/reset-password",
-  "/verify-email",
-  "/unauthorized",
+// Routes that need a clean, minimal layout without the main Sidebar/Navbar
+const CLEAN_PREFIXES = [
+  "/dang-nhap",
+  "/dang-ky",
+  "/quen-mat-khau",
+  "/dat-lai-mat-khau",
+  "/xac-thuc-email",
+  "/khong-duoc-phep",
   "/admin",
+  "/terms",
+  "/privacy",
 ];
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const isAuthPage = AUTH_PREFIXES.some((p) => pathname.startsWith(p));
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const isCleanPage =
+    CLEAN_PREFIXES.some((p) => pathname.startsWith(p)) ||
+    pathname.match(/^\/khoa-hoc-ai\/[^\/]+\/learn/);
 
-  if (isAuthPage) {
+  if (isCleanPage) {
     return <>{children}</>;
   }
 
@@ -37,6 +44,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <main className="flex-1">{children}</main>
           <Footer />
         </div>
+
+        {/* Chat Widget - Always show for debugging */}
+        <ChatWidget />
       </div>
     </SidebarProvider>
   );
